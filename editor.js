@@ -44,24 +44,23 @@ function setupAce () {
             sender: "editor"
         },
         exec: function () {
-            console.log('save');
             saveDocument.call(self);
         }
     });
     
     // save automatically after 1s, if doc has changed
-    var interval;
+    //var interval;
     self.session.on("change", function() {
 
         self.changed = 1;
         self.info.innerHTML = statusText[0];
         
-        if (!interval) {
+        /*if (!interval) {
             interval = setTimeout(function () {
                 interval = null;
                 saveDocument.call(self);
             }, 1000);
-        }
+        }*/
     });
 }
 
@@ -140,6 +139,11 @@ function init () {
         // get save button dom ref
         if (config.save) {
             self.save = bind.view.dom.querySelector(config.save);
+            if(self.save) {
+                self.save.addEventListener('click', function () {
+                    saveDocument.call(self);
+                }, false);
+            }
         }
         
         // setup the ace editor
