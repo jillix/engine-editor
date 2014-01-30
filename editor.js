@@ -108,6 +108,8 @@ function load () {
         
         // TODO load data into editor
         self.session.setValue('{\n\t"json": "editor"\n}\n');
+        
+        self.info.innerHTML = statusText[2];
     }
 }
 
