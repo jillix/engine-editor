@@ -1,5 +1,7 @@
 M.wrap('github/jillix/editor/v0.0.1/editor.js', function (require, module, exports) {
 
+// TODO warn when window closes and unsaved changes exists
+
 var Bind = require('github/jillix/bind/v0.0.1/bind');
 
 var statusText = [
@@ -49,18 +51,9 @@ function setupAce () {
     });
     
     // save automatically after 1s, if doc has changed
-    //var interval;
     self.session.on("change", function() {
-
         self.changed = 1;
         self.info.innerHTML = statusText[0];
-        
-        /*if (!interval) {
-            interval = setTimeout(function () {
-                interval = null;
-                saveDocument.call(self);
-            }, 1000);
-        }*/
     });
 }
 
@@ -103,11 +96,17 @@ function load () {
         // set mode
         self.session.setMode("ace/mode/json");
         
+        // set status text
         self.info.innerHTML = statusText[6];
         
-        // TODO load data into editor
-        self.session.setValue('{\n\t"json": "editor"\n}\n');
+        var path = location.pathname.split('/');
+        var template = path[2];
+        var item = path[3];
         
+        // TODO load data from db into editor
+        self.session.setValue('{\n\t"template": "' + template + '",\n\t"item": "' + item + '"\n}\n');
+        
+        // set status text
         self.info.innerHTML = statusText[2];
     }
 }
@@ -121,7 +120,6 @@ function init () {
     Bind(self).load(config.bind, function (err, bind) {
         
         if (err) {
-            // TODO do something on error
             return;
         }
         
