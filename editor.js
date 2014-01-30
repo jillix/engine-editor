@@ -3,7 +3,6 @@ M.wrap('github/jillix/editor/v0.0.1/editor.js', function (require, module, expor
 var Bind = require('github/jillix/bind/v0.0.1/bind');
 
 var statusText = [
-    
     /*0*/
     "Document has changed",
     /*1*/
@@ -21,41 +20,21 @@ var statusText = [
 ];
 
 function setupAce () {
-    var editor = ace.edit("aceEdit");
-    var session = editor.getSession();
-    var info = document.getElementById("info");
-    var docName = window.location.pathname.substr(1);
-    var docType = docName.split(".").pop().toLowerCase();
-    var fileName = docName.split('/').pop();
-    var unsavedChanges = 0;
-    var saving = false;
+    var self = this;
+    
+    self.editor = ace.edit("aceEdit");
+    self.session = self.editor.getSession();
+    self.changed = 0;
+    self.saving = false;
     
     //setup editor 
-    editor.setTheme("ace/theme/textmate");
-    session = editor.getSession();
-    
-    info.innerHTML = statusText[6];
+    self.editor.setTheme("ace/theme/textmate");
     
     // set font size
-    editor.setFontSize(13);
-    
-    // set mode
-    switch (docType) {
-        case "htm":
-        case "html":
-            docType = "html";
-            break;
-        case "css":
-            docType = "css";
-            break;
-        default:
-            docType = "javascript";
-            break;
-    }
-    session.setMode("ace/mode/" + docType);
+    self.editor.setFontSize(13);
     
     //add ctrl-s command
-    editor.commands.addCommand({
+    self.editor.commands.addCommand({
     
         name: "save",
         bindKey: {
@@ -66,28 +45,75 @@ function setupAce () {
         },
         exec: function () {
             console.log('save');
+            saveDocument.call(self);
         }
     });
     
-    session.setValue('');
-    
+    // save automatically after 1s, if doc has changed
     var interval;
-    session.on("change", function() {
+    self.session.on("change", function() {
 
-        unsavedChanges = 1;
-        info.innerHTML = statusText[0];
+        self.changed = 1;
+        self.info.innerHTML = statusText[0];
         
         if (!interval) {
             interval = setTimeout(function () {
                 interval = null;
-                //saveDocument(editor);
+                saveDocument.call(self);
             }, 1000);
         }
     });
 }
 
+function saveDocument() {
+    var self = this;
+    
+    if(self.changed === 1 && !self.saving) {
+        
+        self.saving = true;
+        self.changed = 2;
+        self.info.innerHTML = statusText[1];
+        
+        // TODO save data to db
+        /*request("save/" + docName, self.editor.getValue(), function(err) {
+            
+            if (err) {
+                
+                self.changed = 1;
+                self.info.innerHTML = statusText[3];
+            }
+            else if (self.changed == 2) {
+                
+                self.changed = 0;
+                self.info.innerHTML = statusText[2];
+            }
+            
+            self.saving = false;
+        });*/
+        
+        self.changed = 0;
+        self.info.innerHTML = statusText[2];
+        self.saving = false;
+    }
+}
+
+function load () {
+    var self = this;
+    if (self.session) {
+        
+        // set mode
+        self.session.setMode("ace/mode/json");
+        
+        self.info.innerHTML = statusText[6];
+        
+        // TODO load data into editor
+        self.session.setValue('{\n\t"json": "editor"\n}\n');
+    }
+}
+
 function init () {
     var self = this;
+    self.load = load;
     config = self.mono.config.data;
     
     // init bind
@@ -104,7 +130,21 @@ function init () {
         // set an empty state is the same like: state.set(location.pathname);
         bind.view.render();
         
-        setupAce();
+        // get info field dom ref
+        if (config.info) {
+            self.info = bind.view.dom.querySelector(config.info);
+        }
+        
+        // get save button dom ref
+        if (config.save) {
+            self.save = bind.view.dom.querySelector(config.save);
+        }
+        
+        // setup the ace editor
+        setupAce.call(self);
+        
+        // init state
+        bind.state.emit();
         
         self.emit('ready');
     });
