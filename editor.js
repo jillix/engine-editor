@@ -18,7 +18,11 @@ var statusText = [
     /*5*/
     "Please wait till document is saved!",
     /*6*/
-    "Document is loading..."
+    "Document is loading...",
+    /*7*/
+    "Error while loading",
+    /*8*/
+    "Empty response"
 ];
 
 function setupAce () {
@@ -67,7 +71,10 @@ function saveDocument() {
         self.info.innerHTML = statusText[1];
         
         // TODO save data to db
-        /*request("save/" + docName, self.editor.getValue(), function(err) {
+        /*self.bind.crud.update({
+            
+        });
+        request("save/" + docName, self.editor.getValue(), function(err) {
             
             if (err) {
                 
@@ -91,7 +98,8 @@ function saveDocument() {
 
 function load () {
     var self = this;
-    if (self.session) {
+    
+    if (self.model && self.session) {
         
         // set mode
         self.session.setMode("ace/mode/json");
@@ -99,22 +107,38 @@ function load () {
         // set status text
         self.info.innerHTML = statusText[6];
         
-        var path = location.pathname.split('/');
-        var template = path[2];
-        var item = path[3];
+        var path = location.pathname.split('/').splice(3).join('/');
+        var crud = {
+            q: {_id: path},
+            s: self.model._id
+        };
         
-        // TODO load data from db into editor
-        self.session.setValue('{\n\t"template": "' + template + '",\n\t"item": "' + item + '"\n}\n');
-        
-        // set status text
-        self.info.innerHTML = statusText[2];
+        // load data from db into editor
+        self.bind.crud.read(crud, function (err, data) {
+            
+            if (err || !data || !data[0]) {
+                data = err = err ? [err.toString()] : [statusText[8]];
+            }
+            
+            self.session.setValue(JSON.stringify(data[0], null, 4) + '\n');
+            
+            // set status text
+            self.info.innerHTML = err ? statusText[7] : statusText[2];
+        });
     }
+}
+
+function setModel (model) {
+    this.model = model;
 }
 
 function init () {
     var self = this;
     self.load = load;
     config = self.mono.config.data;
+    
+    // listen to model event
+    self.on('model', setModel);
     
     // init bind
     Bind(self).load(config.bind, function (err, bind) {
@@ -150,6 +174,7 @@ function init () {
         // init state
         bind.state.emit();
         
+        // TODO get model from url on init
         self.emit('ready');
     });
 }
