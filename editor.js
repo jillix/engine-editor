@@ -2,7 +2,7 @@ M.wrap('github/jillix/editor/v0.0.1/editor.js', function (require, module, expor
 
 // TODO warn when window closes and unsaved changes exists
 
-var Bind = require('github/jillix/bind/v0.0.1/bind');
+var View = require('github/jillix/view/v0.0.1/view');
 
 var statusText = [
     /*0*/
@@ -33,7 +33,7 @@ function setupAce () {
     self.changed = 0;
     self.saving = false;
     
-    //setup editor 
+    //setup editor
     self.editor.setTheme("ace/theme/textmate");
     
     // set font size
@@ -64,20 +64,21 @@ function setupAce () {
 function saveDocument() {
     var self = this;
     
-    if(self.changed === 1 && !self.saving) {
+    if(self.model && self.changed === 1 && !self.saving && !self.loading) {
         
         self.saving = true;
         self.changed = 2;
         self.info.innerHTML = statusText[1];
         
-        // TODO save data to db
-        /*self.bind.crud.update({
-            
-        });
-        request("save/" + docName, self.editor.getValue(), function(err) {
+        // save data to db
+        var query = {
+            q: {_id: self.data._id},
+            d: JSON.parse(self.editor.getValue())
+        };
+        
+        self.model.update(query, function (err) {
             
             if (err) {
-                
                 self.changed = 1;
                 self.info.innerHTML = statusText[3];
             }
@@ -88,18 +89,15 @@ function saveDocument() {
             }
             
             self.saving = false;
-        });*/
-        
-        self.changed = 0;
-        self.info.innerHTML = statusText[2];
-        self.saving = false;
+        });
     }
 }
 
 function load () {
     var self = this;
+    self.loading = 1;
     
-    if (self.model && self.session) {
+    if (self.session) {
         
         // set mode
         self.session.setMode("ace/mode/json");
@@ -107,60 +105,72 @@ function load () {
         // set status text
         self.info.innerHTML = statusText[6];
         
-        var path = location.pathname.split('/').splice(3).join('/');
-        var crud = {
-            q: {_id: path},
-            s: self.model._id
-        };
-        
-        // load data from db into editor
-        self.bind.crud.read(crud, function (err, data) {
+        // get model and read data
+        self.view.model(getModelFromUrl(), function (err, model) {
             
-            if (err || !data || !data[0]) {
-                data = err = err ? [err.toString()] : [statusText[8]];
+            if (err || !model) {
+                self.info.innerHTML = statusText[7];
+                self.loading = 0;
+                self.session.setValue(err || statusText[7]);
+                return;
             }
             
-            self.session.setValue(JSON.stringify(data[0], null, 4) + '\n');
+            var query = {
+                q: {_id: location.pathname.split('/').splice(3).join('/')}
+            };
             
-            // set status text
-            self.info.innerHTML = err ? statusText[7] : statusText[2];
+            self.model = model;
+            
+            // load data from db into editor
+            model.read(query, function (err, data) {
+                
+                if (err || !data || !data[0]) {
+                    data = err = err ? [err.toString()] : [statusText[8]];
+                }
+                
+                self.data = data[0];
+                self.session.setValue(JSON.stringify(data[0], null, 4) + '\n');
+                
+                // set status text
+                self.info.innerHTML = err ? statusText[7] : statusText[2];
+                self.loading = 0;
+                self.changed = 0;
+            });
         });
     }
 }
 
-function setModel (model) {
-    this.model = model;
+function getModelFromUrl (model) {
+    return location.pathname.split('/')[2];
 }
 
 function init () {
     var self = this;
     self.load = load;
+    self.loading = 0;
     config = self.mono.config.data;
     
-    // listen to model event
-    self.on('model', setModel);
-    
-    // init bind
-    Bind(self).load(config.bind, function (err, bind) {
+    // init view
+    View(self).load(config.view, function (err, view) {
         
         if (err) {
             return;
         }
         
-        // save bind instance
-        self.bind = bind;
+        // save view instance
+        self.view = view;
         
         // set an empty state is the same like: state.set(location.pathname);
-        bind.view.render();
+        view.template.render();
         
         // get info field dom ref
         if (config.info) {
-            self.info = bind.view.dom.querySelector(config.info);
+            self.info = view.template.dom.querySelector(config.info);
         }
         
         // get save button dom ref
         if (config.save) {
-            self.save = bind.view.dom.querySelector(config.save);
+            self.save = view.template.dom.querySelector(config.save);
             if(self.save) {
                 self.save.addEventListener('click', function () {
                     saveDocument.call(self);
@@ -171,10 +181,8 @@ function init () {
         // setup the ace editor
         setupAce.call(self);
         
-        // init state
-        bind.state.emit();
-        
-        // TODO get model from url on init
+        // set model
+        view.state.emit();
         self.emit('ready');
     });
 }

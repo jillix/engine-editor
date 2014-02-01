@@ -1,8 +1,8 @@
 var M = process.mono;
-var Bind = require(M.config.paths.MODULE_ROOT + 'github/jillix/bind/v0.0.1/server/bind');
+var View = require(M.config.paths.MODULE_ROOT + 'github/jillix/view/v0.0.1/server/view');
 
 function init (config) {
-    Bind(this);
+    View(this);
 }
 
 module.exports = init;
