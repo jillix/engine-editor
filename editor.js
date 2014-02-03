@@ -145,10 +145,12 @@ function getModelFromUrl (model) {
 }
 
 function init () {
-    var self = this;
+
+    var self = this
+      , config = self.mono.config.data;
+
     self.load = load;
     self.loading = 0;
-    config = self.mono.config.data;
     
     // init view
     View(self).load(config.view, function (err, view) {
