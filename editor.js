@@ -156,7 +156,11 @@ function init () {
     View(self).load(config.view, function (err, view) {
         
         if (err) {
-            return;
+            return console.error(err);
+        }
+        
+        if (!view.template || !view.template.dom) {
+            return console.error('[editor: no dom available]');
         }
         
         // save view instance
