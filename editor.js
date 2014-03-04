@@ -25,10 +25,10 @@ var statusText = [
     "Empty response"
 ];
 
-function setupAce () {
+function setupAce (selector) {
     var self = this;
     
-    self.editor = ace.edit("aceEdit");
+    self.editor = ace.edit(self.view.template.dom.querySelector(selector));
     self.session = self.editor.getSession();
     self.changed = 0;
     self.saving = false;
@@ -137,7 +137,7 @@ function load (state, model, id) {
             if (!urlData) {
                 self.info.innerHTML = statusText[7];
                 self.loading = 0;
-                self.session.setValue(err || statusText[7]);
+                self.session.setValue(statusText[7]);
                 return;
             }
             
@@ -145,14 +145,14 @@ function load (state, model, id) {
             if (!urlData.model) {
                  self.info.innerHTML = statusText[7] + ' | No model name.';
                 self.loading = 0;
-                self.session.setValue(err || statusText[7]);
+                self.session.setValue(statusText[7]);
                 return;
             }
             
             if (!urlData.id) {
                 self.info.innerHTML = statusText[7] + ' | No id name.';
                 self.loading = 0;
-                self.session.setValue(err || statusText[7]);
+                self.session.setValue(statusText[7]);
                 return;
             }
         } else {
@@ -254,6 +254,9 @@ function init () {
         // get info field dom ref
         if (config.info) {
             self.info = view.template.dom.querySelector(config.info);
+            if (!self.info) {
+                self.info = document.createElement('span');
+            }
         }
         
         // get save button dom ref
@@ -267,7 +270,7 @@ function init () {
         }
         
         // setup the ace editor
-        setupAce.call(self);
+        setupAce.call(self, config.editor);
         
         // set model
         view.state.emit();
