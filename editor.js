@@ -40,6 +40,21 @@ function setupAce (selector) {
         }
     });
     
+    //add ctrl-d command
+    self.editor.commands.addCommand({
+    
+        name: "delete",
+        bindKey: {
+        
+            win: "Ctrl-D",
+            mac: "Command-D",
+            sender: "editor"
+        },
+        exec: function () {
+            deleteDocument.call(self);
+        }
+    });
+    
     // save automatically after 1s, if doc has changed
     self.session.on("change", function() {
         self.changed = 1;
@@ -55,14 +70,15 @@ function saveDocument() {
         self.saving = true;
         self.changed = 2;
         self.border.css('border-color', colors.change);
+        
+        var query = {};
  
         // update an existing document
-        if (self.data._id !== "new") {
+        if (self.data._id) {
+            
             // save data to db
-            var query = {
-                q: {_id: self.data._id},
-                d: JSON.parse(self.editor.getValue())
-            };
+            query.q = {_id: self.data._id};
+            query.d = JSON.parse(self.editor.getValue());
             
             self.model.update(query, function (err) {
                 
@@ -78,12 +94,11 @@ function saveDocument() {
                 
                 self.saving = false;
             });
+            
         // if new document then create
-        } else if (self.data._id === "new") {
+        } else {
             // save data to db
-            var query = {
-                d: JSON.parse(self.editor.getValue())
-            };
+            query.d = JSON.parse(self.editor.getValue());
 
             self.model.create(query, function (err, data) {
                 
@@ -98,7 +113,28 @@ function saveDocument() {
                 }
                 
                 self.saving = false;
-                self.view.state.emit(location.pathname.substring(0, location.pathname.length - 3) + data._id);
+                
+                var state = location.pathname.match(self.pattern);
+                state = location.pathname.replace(state[2], data._id);
+                
+                self.view.state.emit(state);
+            });
+        }
+    }
+}
+
+function deleteDocument () {
+    var self = this;
+    
+    if (self.data._id) {
+        if (confirm('Do you really want to delete this document ?')) {
+            
+            // remove document
+            var query = {q: {_id: self.data._id}};
+            self.model.delete(query, function (err, data) {
+                
+                // got to previous state
+                history.back();
             });
         }
     }
