@@ -4,31 +4,17 @@ M.wrap('github/jillix/editor/v0.0.1/editor.js', function (require, module, expor
 
 var View = require('github/jillix/view/v0.0.1/view');
 
-var statusText = [
-    /*0*/
-    "Document has changed",
-    /*1*/
-    "Document is saving...",
-    /*2*/
-    "All changes saved",
-    /*3*/
-    "An Error occurred while saving, please try again",
-    /*4*/
-    "Your changes are not saved!",
-    /*5*/
-    "Please wait till document is saved!",
-    /*6*/
-    "Document is loading...",
-    /*7*/
-    "Error while loading",
-    /*8*/
-    "Empty response"
-];
+var colors = {
+    saved: 'rgba(24,160,24,.3)',
+    change: 'rgba(24,160,224,.5)',
+    error: 'rgba(160,24,24,.5)'
+};
 
 function setupAce (selector) {
     var self = this;
     
     self.editor = ace.edit(self.view.template.dom.querySelector(selector));
+    self.border = $(self.editor.container.parentNode);
     self.session = self.editor.getSession();
     self.changed = 0;
     self.saving = false;
@@ -57,7 +43,7 @@ function setupAce (selector) {
     // save automatically after 1s, if doc has changed
     self.session.on("change", function() {
         self.changed = 1;
-        self.info.innerHTML = statusText[0];
+        self.border.css('border-color', colors.change);
     });
 }
 
@@ -68,7 +54,7 @@ function saveDocument() {
         
         self.saving = true;
         self.changed = 2;
-        self.info.innerHTML = statusText[1];
+        self.border.css('border-color', colors.change);
  
         // update an existing document
         if (self.data._id !== "new") {
@@ -82,12 +68,12 @@ function saveDocument() {
                 
                 if (err) {
                     self.changed = 1;
-                    self.info.innerHTML = statusText[3];
+                    self.border.css('border-color', colors.error);
                 }
                 else if (self.changed == 2) {
                     
                     self.changed = 0;
-                    self.info.innerHTML = statusText[2];
+                    self.border.css('border-color', colors.saved);
                 }
                 
                 self.saving = false;
@@ -103,14 +89,14 @@ function saveDocument() {
                 
                 if (err) {
                     self.changed = 1;
-                    self.info.innerHTML = statusText[3];
+                    self.border.css('border-color', colors.error);
                 }
                 else if (self.changed == 2) {
                     
                     self.changed = 0;
-                    self.info.innerHTML = statusText[2];
+                    self.border.css('border-color', colors.saved);
                 }
-
+                
                 self.saving = false;
                 self.view.state.emit(location.pathname.substring(0, location.pathname.length - 3) + data._id);
             });
@@ -128,31 +114,31 @@ function load (state, model, id) {
         self.session.setMode("ace/mode/json");
 
         // set status text
-        self.info.innerHTML = statusText[6];
+        self.border.css('border-color', colors.change);
 
         // get model and read data
         var urlData;
         if (!model && !id) {
             urlData = getDataFromUrl(self.pattern);
             if (!urlData) {
-                self.info.innerHTML = statusText[7];
+                self.border.css('border-color', colors.error);
                 self.loading = 0;
-                self.session.setValue(statusText[7]);
+                self.session.setValue('');
                 return;
             }
             
             // no model message
             if (!urlData.model) {
-                 self.info.innerHTML = statusText[7] + ' | No model name.';
+                self.border.css('border-color', colors.error);
                 self.loading = 0;
-                self.session.setValue(statusText[7]);
+                self.session.setValue('No model name.');
                 return;
             }
             
             if (!urlData.id) {
-                self.info.innerHTML = statusText[7] + ' | No id name.';
+                self.border.css('border-color', colors.error);
                 self.loading = 0;
-                self.session.setValue(statusText[7]);
+                self.session.setValue('No id name.');
                 return;
             }
         } else {
@@ -165,9 +151,9 @@ function load (state, model, id) {
         self.view.model(urlData.model, function (err, model) {
 
             if (err || !model) {
-                self.info.innerHTML = statusText[7];
+                self.border.css('border-color', colors.error);
                 self.loading = 0;
-                self.session.setValue(err || statusText[7]);
+                self.session.setValue(err);
                 return;
             }
 
@@ -182,7 +168,7 @@ function load (state, model, id) {
                 self.session.setValue("{}");
 
                 //set status text
-                self.info.innerHTML = statusText[4];
+                self.border.css('border-color', colors.change);
                 self.loading = 0;
                 self.changed = 0;
             } else {
@@ -195,14 +181,14 @@ function load (state, model, id) {
                 model.read(query, function (err, data) {
                     
                     if (err || !data || !data[0]) {
-                        data = err = err ? [err.toString()] : [statusText[8]];
+                        data = err = err ? [err.toString()] : ["Empty response"];
                     }
 
                     self.data = data[0];
                     self.session.setValue(JSON.stringify(data[0], null, 4) + '\n');
                     
                     // set status text
-                    self.info.innerHTML = err ? statusText[7] : statusText[2];
+                    self.border.css('border-color', err ? colors.error : colors.saved);
                     self.loading = 0;
                     self.changed = 0;
                 });
@@ -250,24 +236,6 @@ function init () {
         
         // set an empty state is the same like: state.set(location.pathname);
         view.template.render();
-        
-        // get info field dom ref
-        if (config.info) {
-            self.info = view.template.dom.querySelector(config.info);
-            if (!self.info) {
-                self.info = document.createElement('span');
-            }
-        }
-        
-        // get save button dom ref
-        if (config.save) {
-            self.save = view.template.dom.querySelector(config.save);
-            if(self.save) {
-                self.save.addEventListener('click', function () {
-                    saveDocument.call(self);
-                }, false);
-            }
-        }
         
         // setup the ace editor
         setupAce.call(self, config.editor);
