@@ -85,6 +85,7 @@ function saveDocument() {
                 if (err) {
                     self.changed = 1;
                     self.border.css('border-color', colors.error);
+                    alert(err);
                 }
                 else if (self.changed == 2) {
                     
@@ -105,6 +106,7 @@ function saveDocument() {
                 if (err) {
                     self.changed = 1;
                     self.border.css('border-color', colors.error);
+                    alert(err);
                 }
                 else if (self.changed == 2) {
                     
@@ -114,9 +116,9 @@ function saveDocument() {
                 
                 self.saving = false;
                 
-                var state = location.pathname.match(self.pattern);
-                state = location.pathname.replace(state[2], data._id);
-                
+                // emit state to reload data
+                var state = getDataFromUrl(self.pattern, self.map);
+                state = location.pathname.replace('/' + state.id + '/', '/' + data._id + '/');
                 self.view.state.emit(state);
             });
         }
@@ -132,6 +134,12 @@ function deleteDocument () {
             // remove document
             var query = {q: {_id: self.data._id}};
             self.model.delete(query, function (err, data) {
+                
+                if (err) {
+                    self.changed = 1;
+                    self.border.css('border-color', colors.error);
+                    return alert(err);
+                }
                 
                 // got to previous state
                 history.back();
