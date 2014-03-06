@@ -155,11 +155,11 @@ function load (state, model, id) {
         // get model and read data
         var urlData;
         if (!model && !id) {
-            urlData = getDataFromUrl(self.pattern);
+            urlData = getDataFromUrl(self.pattern, self.map);
             if (!urlData) {
                 self.border.css('border-color', colors.error);
                 self.loading = 0;
-                self.session.setValue('');
+                self.session.setValue('no url data: pattern: ' + self.pattern.toString() + (self.source ? ' | source: ' + self.source.toString() : ''));
                 return;
             }
             
@@ -184,7 +184,7 @@ function load (state, model, id) {
             };
         }
         
-        self.view.model(urlData.model, function (err, model) {
+        self.view.model(urlData, function (err, model) {
 
             if (err || !model) {
                 self.border.css('border-color', colors.error);
@@ -233,16 +233,24 @@ function load (state, model, id) {
     }
 }
 
-function getDataFromUrl (pattern) {
+function getDataFromUrl (pattern, map) {
     var match = location.pathname.match(pattern);
-    if (match && match[1] && match[2]) {
-        return {
-            model: match[1],
-            id: match[2]
-        };
+    var output = {};
+    
+    if (!match) {
+        return;
     }
-
-    return;
+    
+    // create output
+    for (var key in map) {
+        if (map[key] instanceof Array) {
+            output[key] = map[key][0] + match[map[key][1]] + (map[key][2] || '');
+        } else {
+            output[key] = match[map[key]];
+        }
+    }
+    
+    return output;
 }
 
 function init () {
@@ -259,6 +267,11 @@ function init () {
     
     // create regexp
     self.pattern = new RegExp(config.pattern);
+    
+    // define map for regexp match
+    if (config.map) {
+        self.map = config.map;
+    }
     
     // init view
     View(self).load(config.view, function (err, view) {
