@@ -187,7 +187,7 @@ function load (state, model, id) {
             }
         } else {
             urlData = {
-                model: model,
+                name: model,
                 id: id
             };
         }
