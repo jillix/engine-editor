@@ -172,7 +172,7 @@ function load (state, model, id) {
             }
             
             // no model message
-            if (!urlData.model) {
+            if (!urlData.name) {
                 self.border.css('border-color', colors.error);
                 self.loading = 0;
                 self.session.setValue('No model name.');
