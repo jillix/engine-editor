@@ -119,7 +119,7 @@ function saveDocument() {
                 // emit state to reload data
                 var state = getDataFromUrl(self.pattern, self.map);
                 state = location.pathname.replace('/' + state.id + '/', '/' + data._id + '/');
-                self.view.state.emit(state);
+                self.route(state);
             });
         }
     }
@@ -291,14 +291,13 @@ function init () {
         // save view instance
         self.view = view;
         
-        // set an empty state is the same like: state.set(location.pathname);
+        // render html
         view.template.render();
         
         // setup the ace editor
         setupAce.call(self, config.editor);
         
         // set model
-        view.state.emit();
         self.emit('ready');
     });
 }
