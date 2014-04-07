@@ -5,11 +5,10 @@ function init (config) {
     var self = this;
     
     // plug View
-    View(self, function (err) {
-        
-        // instance is ready
-        self.emit('ready', err);
-    });
+    View(self);
+    
+    // instance is ready
+    self.emit('ready');
 }
 
 module.exports = init;

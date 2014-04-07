@@ -148,7 +148,7 @@ function deleteDocument () {
     }
 }
 
-function load (state, model, id) {
+function load (state, map) {
     var self = this;
     self.loading = 1;
 
@@ -161,38 +161,16 @@ function load (state, model, id) {
         self.border.css('border-color', colors.change);
 
         // get model and read data
-        var urlData;
-        if (!model && !id) {
-            urlData = getDataFromUrl(self.pattern, self.map);
-            if (!urlData) {
-                self.border.css('border-color', colors.error);
-                self.loading = 0;
-                self.session.setValue('no url data: pattern: ' + self.pattern.toString() + (self.source ? ' | source: ' + self.source.toString() : ''));
-                return;
-            }
-            
-            // no model message
-            if (!urlData.name) {
-                self.border.css('border-color', colors.error);
-                self.loading = 0;
-                self.session.setValue('No model name.');
-                return;
-            }
-            
-            if (!urlData.id) {
-                self.border.css('border-color', colors.error);
-                self.loading = 0;
-                self.session.setValue('No id name.');
-                return;
-            }
-        } else {
-            urlData = {
-                name: model,
-                id: id
-            };
+        map = map || state.map;
+        
+        if (!map) {
+            self.border.css('border-color', colors.error);
+            self.loading = 0;
+            self.session.setValue('[editor: no query data]');
+            return;
         }
         
-        self.view.model(urlData, function (err, model) {
+        self.view.model(map, function (err, model) {
 
             if (err || !model) {
                 self.border.css('border-color', colors.error);
@@ -204,7 +182,7 @@ function load (state, model, id) {
             self.model = model;
 
             // check if new
-            if (urlData.id === 'new') {
+            if (map.id === 'new') {
                 
                 self.data = {};
                 
@@ -218,7 +196,7 @@ function load (state, model, id) {
             } else {
 
                 var query = {
-                    q: {_id: urlData.id}
+                    q: {_id: map.id}
                 };
 
                 // load data from db into editor
@@ -268,18 +246,6 @@ function init () {
 
     self.load = load;
     self.loading = 0;
-    
-    if (!config.pattern) {
-        return console.error('[editor: No pattern given.]');
-    }
-    
-    // create regexp
-    self.pattern = new RegExp(config.pattern);
-    
-    // define map for regexp match
-    if (config.map) {
-        self.map = config.map;
-    }
     
     // init view
     View(self).load(config.view, function (err, view) {
