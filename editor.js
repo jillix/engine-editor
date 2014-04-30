@@ -56,7 +56,7 @@ function setupAce (selector) {
     });
     
     // save automatically after 1s, if doc has changed
-    self.session.on("change", function() {
+    self.editor.getSession().on("change", function() {
         self.changed = 1;
         self.border.css('border-color', colors.change);
     });
@@ -152,71 +152,68 @@ function load (state, map) {
     var self = this;
     self.loading = 1;
 
-    if (self.session) {
+    // set mode
+    self.editor.getSession().setMode("ace/mode/json");
 
-        // set mode
-        self.session.setMode("ace/mode/json");
+    // set status text
+    self.border.css('border-color', colors.change);
 
-        // set status text
-        self.border.css('border-color', colors.change);
+    // get model and read data
+    map = map || state.map;
+    
+    if (!map) {
+        self.border.css('border-color', colors.error);
+        self.loading = 0;
+        self.editor.setValue('[editor: no query data]');
+        return;
+    }
+    
+    self.view.model(map, function (err, model) {
 
-        // get model and read data
-        map = map || state.map;
-        
-        if (!map) {
+        if (err || !model) {
             self.border.css('border-color', colors.error);
             self.loading = 0;
-            self.session.setValue('[editor: no query data]');
+            self.editor.setValue(err);
             return;
         }
-        
-        self.view.model(map, function (err, model) {
 
-            if (err || !model) {
-                self.border.css('border-color', colors.error);
-                self.loading = 0;
-                self.session.setValue(err);
-                return;
-            }
+        self.model = model;
 
-            self.model = model;
+        // check if new
+        if (map.id === 'new') {
+            
+            self.data = {};
+            
+            // add default data in editor
+            self.editor.setValue("{}");
 
-            // check if new
-            if (map.id === 'new') {
+            //set status text
+            self.border.css('border-color', colors.change);
+            self.loading = 0;
+            self.changed = 0;
+        } else {
+
+            var query = {
+                q: {_id: map.id}
+            };
+
+            // load data from db into editor
+            model.read(query, function (err, data) {
                 
-                self.data = {};
-                
-                // add default data in editor
-                self.session.setValue("{}");
+                if (err || !data || !data[0]) {
+                    data = err = err ? [err.toString()] : ["Empty response"];
+                }
 
-                //set status text
-                self.border.css('border-color', colors.change);
+                self.data = data[0];
+                self.editor.setValue(JSON.stringify(data[0], null, 4) + '\n');
+                
+                // set status text
+                self.border.css('border-color', err ? colors.error : colors.saved);
                 self.loading = 0;
                 self.changed = 0;
-            } else {
-
-                var query = {
-                    q: {_id: map.id}
-                };
-
-                // load data from db into editor
-                model.read(query, function (err, data) {
-                    
-                    if (err || !data || !data[0]) {
-                        data = err = err ? [err.toString()] : ["Empty response"];
-                    }
-
-                    self.data = data[0];
-                    self.session.setValue(JSON.stringify(data[0], null, 4) + '\n');
-                    
-                    // set status text
-                    self.border.css('border-color', err ? colors.error : colors.saved);
-                    self.loading = 0;
-                    self.changed = 0;
-                });
-            }
-        });
-    }
+            });
+        }
+    });
 }
 
 function getDataFromUrl (pattern, map) {
