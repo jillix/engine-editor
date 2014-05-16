@@ -2,8 +2,6 @@ M.wrap('github/jillix/editor/v0.0.1/editor.js', function (require, module, expor
 
 // TODO warn when window closes and unsaved changes exists
 
-var View = require('github/jillix/view/v0.0.1/view');
-
 var colors = {
     saved: 'rgba(24,160,24,.3)',
     change: 'rgba(24,160,224,.5)',
@@ -13,7 +11,11 @@ var colors = {
 function setupAce (selector) {
     var self = this;
     
-    self.editor = ace.edit(self.view.template.dom.querySelector(selector));
+    if (!self.layout.dom) {
+        return '[editor: View has no dom]';
+    }
+    
+    self.editor = ace.edit(self.layout.dom.querySelector(selector));
     self.border = $(self.editor.container.parentNode);
     self.session = self.editor.getSession();
     self.changed = 0;
@@ -65,7 +67,7 @@ function setupAce (selector) {
 function saveDocument() {
     var self = this;
 
-    if(self.model && self.changed === 1 && !self.saving && !self.loading) {
+    if(self.view && self.changed === 1 && !self.saving && !self.loading) {
         
         self.saving = true;
         self.changed = 2;
@@ -77,10 +79,11 @@ function saveDocument() {
         if (self.data._id) {
             
             // save data to db
+            query.m = 'update';
             query.q = {_id: self.data._id};
             query.d = JSON.parse(self.editor.getValue());
             
-            self.model.update(query, function (err) {
+            self.currentView.req(query, function (err) {
                 
                 if (err) {
                     self.changed = 1;
@@ -99,9 +102,10 @@ function saveDocument() {
         // if new document then create
         } else {
             // save data to db
+            query.m = 'insert';
             query.d = JSON.parse(self.editor.getValue());
 
-            self.model.create(query, function (err, data) {
+            self.currentView.req(query, function (err, data) {
                 
                 if (err) {
                     self.changed = 1;
@@ -132,8 +136,11 @@ function deleteDocument () {
         if (confirm('Do you really want to delete this document ?')) {
             
             // remove document
-            var query = {q: {_id: self.data._id}};
-            self.model.delete(query, function (err, data) {
+            var query = {
+                m: 'remove',
+                q: {_id: self.data._id}
+            };
+            self.currentView.req(query, function (err, data) {
                 
                 if (err) {
                     self.changed = 1;
@@ -148,7 +155,7 @@ function deleteDocument () {
     }
 }
 
-function load (state, map) {
+function load (state) {
     var self = this;
     self.loading = 1;
 
@@ -158,61 +165,57 @@ function load (state, map) {
     // set status text
     self.border.css('border-color', colors.change);
 
-    // get model and read data
-    map = map || state.map;
-    
-    if (!map) {
-        self.border.css('border-color', colors.error);
-        self.loading = 0;
-        self.editor.setValue('[editor: no query data]');
-        return;
-    }
-    
-    self.view.model(map, function (err, model) {
+    self.view(state.view, function (err, view) {
 
-        if (err || !model) {
+        if (err || !view) {
             self.border.css('border-color', colors.error);
             self.loading = 0;
             self.editor.setValue(err);
             return;
         }
-
-        self.model = model;
-
-        // check if new
-        if (map.id === 'new') {
-            
+        
+        // create query from view config
+        var query = getDataFromUrl(view.config.re, view.config.map);
+        
+        // merge static query
+        if (view.config.query) {
+            for (var prop in view.config.query) {
+                query[prop] = view.config.query[prop];
+            }
+        }
+        
+        // check if it's a new item
+        if(view.config.create && query[view.config.create.key] && query[view.config.create.key] === view.config.create.value) {
             self.data = {};
             
             // add default data in editor
-            self.editor.setValue("{}");
+            self.editor.setValue('{\n\t"name": ""\n}');
 
             //set status text
             self.border.css('border-color', colors.change);
             self.loading = 0;
             self.changed = 0;
-        } else {
-
-            var query = {
-                q: {_id: map.id}
-            };
-
-            // load data from db into editor
-            model.read(query, function (err, data) {
-                
-                if (err || !data || !data[0]) {
-                    data = err = err ? [err.toString()] : ["Empty response"];
-                }
-
-                self.data = data[0];
-                self.editor.setValue(JSON.stringify(data[0], null, 4) + '\n');
-                
-                // set status text
-                self.border.css('border-color', err ? colors.error : colors.saved);
-                self.loading = 0;
-                self.changed = 0;
-            });
+            
+            return;
         }
+        
+        self.currentView = view;
+        
+        // load data from db into editor
+        view.req({m: 'findOne', q: query}, function (err, data) {
+            
+            if (err || !data) {
+                data = err = err ? [err.toString()] : ["Empty response"];
+            }
+
+            self.data = data;
+            self.editor.setValue(JSON.stringify(data, null, 4) + '\n');
+            
+            // set status text
+            self.border.css('border-color', err ? colors.error : colors.saved);
+            self.loading = 0;
+            self.changed = 0;
+        });
     });
 }
 
@@ -241,26 +244,28 @@ function init () {
     var self = this;
     var config = self.mono.config.data;
 
-    self.load = load;
     self.loading = 0;
     
     // init view
-    View(self).load(config.view, function (err, view) {
+    self.view(config.view, function (err, view) {
         
         if (err) {
             return console.error('[editor: ' + err + ']');
         }
         
-        // save view instance
-        self.view = view;
-        
         // render html
-        view.template.render();
+        view.render();
+        
+        // save view instance
+        self.layout = view;
         
         // setup the ace editor
-        setupAce.call(self, config.editor);
+        var error = setupAce.call(self, config.editor);
+        if (error) {
+            return console.error(error);
+        }
         
-        // set model
+        self.load = load;
         self.emit('ready');
     });
 }
