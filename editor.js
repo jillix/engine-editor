@@ -67,7 +67,7 @@ function setupAce (selector) {
 function saveDocument() {
     var self = this;
 
-    if(self.view && self.changed === 1 && !self.saving && !self.loading) {
+    if(self.model && self.changed === 1 && !self.saving && !self.loading) {
 
         self.saving = true;
         self.changed = 2;
@@ -83,7 +83,7 @@ function saveDocument() {
             query.q = {_id: self.data._id};
             query.d = JSON.parse(self.editor.getValue());
 
-            self.currentView.req(query, function (err) {
+            self.model.req(query, function (err) {
 
                 if (err) {
                     self.changed = 1;
@@ -105,7 +105,7 @@ function saveDocument() {
             query.m = 'insert';
             query.d = JSON.parse(self.editor.getValue());
 
-            self.currentView.req(query, function (err, data) {
+            self.model.req(query, function (err, data) {
 
                 if (err) {
                     self.changed = 1;
@@ -120,10 +120,7 @@ function saveDocument() {
 
                 self.saving = false;
 
-                // emit state to reload data
-                var state = getDataFromUrl(self.pattern, self.map);
-                state = location.pathname.replace('/' + state.id + '/', '/' + data._id + '/');
-                self.route(state);
+                // TODO reload with correct url
             });
         }
     }
@@ -132,7 +129,7 @@ function saveDocument() {
 function deleteDocument () {
     var self = this;
 
-    if (self.data._id) {
+    if (self.model && self.data._id) {
         if (confirm('Do you really want to delete this document ?')) {
 
             // remove document
@@ -140,7 +137,7 @@ function deleteDocument () {
                 m: 'remove',
                 q: {_id: self.data._id}
             };
-            self.currentView.req(query, function (err, data) {
+            self.model.req(query, function (err, data) {
 
                 if (err) {
                     self.changed = 1;
@@ -155,9 +152,10 @@ function deleteDocument () {
     }
 }
 
-function load (state, regexp, title, query, view) {
+function load (state, regexp, map, view) {
 
     var self = this;
+    var query = {};
     self.loading = 1;
 
     // set mode
@@ -170,19 +168,21 @@ function load (state, regexp, title, query, view) {
         var match = state.url.match(new RegExp(regexp));
 
         if (!match) {
+
             // create a new item
+            self.data = {};
             self.editor.setValue('{}');
             self.loading = 0;
+
+            // render title
+            self.view.title.render(self.title_new);
+
             return;
         }
 
-        if (title) {
-            title = match[title];
-        }
-
-        if (query) {
-            for (var field in query) {
-                query[field] = match[query[field]];
+        if (map) {
+            for (var field in map) {
+                query[field] = match[map[field]];
             }
         }
 
@@ -190,8 +190,6 @@ function load (state, regexp, title, query, view) {
             view = match[view];
         }
     }
-
-    // TODO set title
 
     if (view) {
         // TODO fetch view from server
@@ -206,6 +204,9 @@ function load (state, regexp, title, query, view) {
 
             self.data = data;
             self.editor.setValue(JSON.stringify(data, null, 4) + '\n');
+
+            // render title
+            self.view.title.render([data]);
 
             // set status color
             self.border.css('border-color', err ? colors.error : colors.saved);
@@ -242,8 +243,23 @@ function init (config, ready) {
         console.error(error);
     }
 
-    console.log('editor:', self._name);
-    ready();
+    // create a title view
+    if (config.title) {
+
+        // create title for new item
+        self.title_new = {};
+        self.title_new[config.title.key] = config.title.create;
+        self.title_new = [self.title_new];
+
+        self._load('V', {name: 'title', to: config.title.selector, html: '{' + config.title.key + '}'}, function (err, view) {
+
+            console.log('editor:', self._name);
+            ready();
+        });
+    } else {
+        console.log('editor:', self._name);
+        ready();
+    }
 }
 
 module.exports = init;
