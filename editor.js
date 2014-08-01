@@ -164,6 +164,9 @@ function load (state, regexp, map, view) {
     // set status text
     self.border.css('border-color', colors.change);
 
+    // focus the editor
+    self.editor.focus();
+
     if (regexp) {
         var match = state.url.match(new RegExp(regexp));
 
@@ -203,7 +206,7 @@ function load (state, regexp, map, view) {
             }
 
             self.data = data;
-            self.editor.setValue(JSON.stringify(data, null, 4) + '\n');
+            self.editor.setValue(JSON.stringify(data, null, 4) + '\n', -1);
 
             // render title
             self.view.title.render([data]);
