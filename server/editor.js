@@ -1,10 +1,10 @@
-var M = process.mono;
+var env = process.env;
 
-function init (config) {
+function init (config, ready) {
     var self = this;
-    
+
     // instance is ready
-    self.emit('ready');
+    ready();
 }
 
 module.exports = init;

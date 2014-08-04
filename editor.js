@@ -8,6 +8,60 @@ var colors = {
     error: 'rgba(160,24,24,.5)'
 };
 
+module.exports = init;
+
+/*
+    type: constructor
+*/
+function init (config, ready) {
+
+    var self = this;
+
+    self.loading = 0;
+    self.load = load;
+
+    // render layout
+    if (self.view && self.view.layout) {
+        self.view.layout.render();
+    }
+
+    // a table can have only one model
+    if (self.model) {
+        for (var model in self.model) {
+            self.model = self.model[model];
+            break;
+        }
+    }
+
+    // setup the ace editor
+    var error = setupAce.call(self, config.editor);
+
+    if (error) {
+        console.error(error);
+    }
+
+    // create a title view
+    if (config.title) {
+
+        // create title for new item
+        self.title_new = {};
+        self.title_new[config.title.key] = config.title.create;
+        self.title_new = [self.title_new];
+
+        self._load('V', {name: 'title', to: config.title.selector, html: '{' + config.title.key + '}'}, function (err, view) {
+
+            console.log('editor:', self._name);
+            ready();
+        });
+    } else {
+        console.log('editor:', self._name);
+        ready();
+    }
+}
+
+/*
+    type: private
+*/
 function setupAce (selector) {
     var self = this;
 
@@ -64,6 +118,9 @@ function setupAce (selector) {
     });
 }
 
+/*
+    type: private
+*/
 function saveDocument() {
     var self = this;
 
@@ -126,6 +183,9 @@ function saveDocument() {
     }
 }
 
+/*
+    type: private
+*/
 function deleteDocument () {
     var self = this;
 
@@ -152,10 +212,14 @@ function deleteDocument () {
     }
 }
 
-function load (state, regexp, map, view) {
+/*
+    type: actor
+*/
+function load (state, data) {
 
     var self = this;
-    var query = {};
+    var view = data.view;
+    var id = data.id || "";
     self.loading = 1;
 
     // set mode
@@ -164,31 +228,17 @@ function load (state, regexp, map, view) {
     // set status text
     self.border.css('border-color', colors.change);
 
-    if (regexp) {
-        var match = state.url.match(new RegExp(regexp));
+    if (!id) {
 
-        if (!match) {
+        // create a new item
+        self.data = {};
+        self.editor.setValue('{}');
+        self.loading = 0;
 
-            // create a new item
-            self.data = {};
-            self.editor.setValue('{}');
-            self.loading = 0;
+        // render title
+        self.view.title.render(self.title_new);
 
-            // render title
-            self.view.title.render(self.title_new);
-
-            return;
-        }
-
-        if (map) {
-            for (var field in map) {
-                query[field] = match[map[field]];
-            }
-        }
-
-        if (view) {
-            view = match[view];
-        }
+        return;
     }
 
     if (view) {
@@ -196,7 +246,7 @@ function load (state, regexp, map, view) {
     } else {
 
         // mongodb model request
-        self.model.req({m: 'findOne', q: query}, function (err, data) {
+        self.model.req({m: 'findOne', q: {name: id}}, function (err, data) {
 
             if (err || !data) {
                 data = err = err ? [err.toString()] : ["Empty response"];
@@ -215,54 +265,6 @@ function load (state, regexp, map, view) {
         });
     }
 }
-
-function init (config, ready) {
-
-    var self = this;
-
-    self.loading = 0;
-    self.load = load;
-
-    // render layout
-    if (self.view && self.view.layout) {
-        self.view.layout.render();
-    }
-
-    // a table can have only one model
-    if (self.model) {
-        for (var model in self.model) {
-            self.model = self.model[model];
-            break;
-        }
-    }
-
-    // setup the ace editor
-    var error = setupAce.call(self, config.editor);
-
-    if (error) {
-        console.error(error);
-    }
-
-    // create a title view
-    if (config.title) {
-
-        // create title for new item
-        self.title_new = {};
-        self.title_new[config.title.key] = config.title.create;
-        self.title_new = [self.title_new];
-
-        self._load('V', {name: 'title', to: config.title.selector, html: '{' + config.title.key + '}'}, function (err, view) {
-
-            console.log('editor:', self._name);
-            ready();
-        });
-    } else {
-        console.log('editor:', self._name);
-        ready();
-    }
-}
-
-module.exports = init;
 
 return module;
 
