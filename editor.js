@@ -227,6 +227,9 @@ function load (state, data) {
 
     // set status text
     self.border.css('border-color', colors.change);
+    
+    // focus the editor
+    self.editor.focus();
 
     if (!id) {
 
@@ -253,7 +256,7 @@ function load (state, data) {
             }
 
             self.data = data;
-            self.editor.setValue(JSON.stringify(data, null, 4) + '\n');
+            self.editor.setValue(JSON.stringify(data, null, 4) + '\n', -1);
 
             // render title
             self.view.title.render([data]);
