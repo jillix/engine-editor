@@ -50,11 +50,9 @@ function init (config, ready) {
 
         self._load('V', {name: 'title', to: config.title.selector, html: '{' + config.title.key + '}'}, function (err, view) {
 
-            console.log('editor:', self._name);
             ready();
         });
     } else {
-        console.log('editor:', self._name);
         ready();
     }
 }
