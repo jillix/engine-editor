@@ -1,5 +1,3 @@
-Z.wrap('github/jillix/editor/v0.0.1/editor.js', function (require, module, exports) {
-
 // TODO warn when window closes and unsaved changes exists
 
 var colors = {
@@ -225,7 +223,7 @@ function load (state, data) {
 
     // set status text
     self.border.css('border-color', colors.change);
-    
+
     // focus the editor
     self.editor.focus();
 
@@ -266,7 +264,3 @@ function load (state, data) {
         });
     }
 }
-
-return module;
-
-});
