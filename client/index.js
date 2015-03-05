@@ -1,5 +1,5 @@
 // Dependencies
-var Ace = require("./libs/ace-builds/src-noconflict/ace");
+var Ace = require("./libs/ace/src-noconflict/ace");
 
 /**
  * set
