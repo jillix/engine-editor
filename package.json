@@ -1,0 +1,24 @@
+{
+  "name": "engine-editor",
+  "version": "1.0.0",
+  "description": "ACE editor module for Engine.",
+  "main": "client/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jillix/editor.git"
+  },
+  "keywords": [
+    "editor",
+    "ace",
+    "engine"
+  ],
+  "author": "jillix <contact@jillix.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jillix/editor/issues"
+  },
+  "homepage": "https://github.com/jillix/editor"
+}

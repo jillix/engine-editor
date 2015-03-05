@@ -1,4 +1,4 @@
-editor
-======
+Engine Editor
+=============
 
-Ace editor mono module
+ACE editor module for Engine.
