@@ -2,7 +2,6 @@
     "name": "engine-editor",
     "version": "1.0.0",
     "description": "ACE editor module for Engine.",
-    "main": "client/index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
@@ -20,7 +19,7 @@
     "components": {
         "scripts": [
             "client/index.js",
-            "client/libs/ace/scr-noconflict/ace.js",
+            "client/libs/ace/src-noconflict/ace.js",
             "/libs/jquery.js"
         ]
     },
