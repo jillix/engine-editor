@@ -1,0 +1,8 @@
+{
+    "client": {
+        "methods": {
+            "set": {},
+            "get": {}
+        }
+    }
+}
