@@ -19,8 +19,7 @@
     "components": {
         "scripts": [
             "client/index.js",
-            "client/libs/ace/src-noconflict/ace.js",
-            "/libs/jquery.js"
+            "client/libs/ace/src-noconflict/ace.js"
         ]
     },
     "bugs": {
