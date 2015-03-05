@@ -9,7 +9,14 @@
  * @return {undefined}
  */
 exports.set = function (ev, data) {
-    this.editor.setValue(data);
+    if (typeof data === "object") {
+        data = JSON.stringify(data, null, 2);
+    }
+    this.editor.setValue(data, -1);
+};
+
+exports.focus = function () {
+    this.editor.focus();
 };
 
 /**
