@@ -5,7 +5,7 @@
  * @name set
  * @function
  * @param {Event} ev The event object
- * @param {String} data The new value.
+ * @param {Object} data The new value that will be stringified.
  * @return {undefined}
  */
 exports.set = function (ev, data) {
@@ -26,15 +26,12 @@ exports.focus = function () {
  * @name get
  * @function
  * @param {Event} ev The event object
- * @param {An object containing the callback function.} data
+ * @param {Function} data An object containing the callback function.
  * @return {undefined}
  */
 exports.get = function (ev, data) {
     var value = this.editor.getValue();
-    if (typeof data === "function") {
-        data = { callback: data };
-    }
-    typeof data.callback && data.callback.call(this, value);
+    typeof data.callback === "function" && data.callback.call(this, value);
     return value;
 };
 
