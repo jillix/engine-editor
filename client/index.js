@@ -1,6 +1,3 @@
-// Dependencies
-var Ace = require("./libs/ace/src-noconflict/ace");
-
 /**
  * set
  * Sets the new editor value.
@@ -45,11 +42,11 @@ exports.get = function (ev, data) {
 exports.init = function () {
     var self = this;
 
+    self.edEl = document.querySelector(self._config.editor);
     self.edEl.style.width = "100%";
     self.edEl.style.height = "100%";
 
-    self.edEl = document.querySelector(self._config.editor);
-    self.editor = Ace.edit();
+    self.editor = ace.edit(self.edEl);
     self.editor.setTheme("ace/theme/" + self._config.theme);
     self.editor.setFontSize(self._config.font_size || 13);
     self.editor.getSession().setMode("ace/mode/" + self._config.mode);
