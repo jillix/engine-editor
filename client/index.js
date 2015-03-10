@@ -55,16 +55,7 @@ exports.init = function () {
     self.editor.setFontSize(self._config.font_size || 13);
     self.editor.getSession().setMode("ace/mode/" + self._config.mode);
 
-    // add ctrl-s command
-    // self.editor.commands.addCommand({
-    //     name: "save",
-    //     bindKey: {
-    //         win: "Ctrl-S",
-    //         mac: "Command-S",
-    //         sender: "editor"
-    //     },
-    //     exec: function () {
-    //         saveDocument.call(self);
-    //     }
-    // });
+    self.editor.setOptions({
+        enableBasicAutocompletion: true
+    });
 };
