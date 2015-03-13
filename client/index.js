@@ -9,10 +9,11 @@
  * @return {undefined}
  */
 exports.set = function (ev, data) {
-    if (typeof data === "object") {
-        data = JSON.stringify(data, null, 2);
+    var value = data.content;
+    if (typeof value === "object") {
+        value = JSON.stringify(value, null, 2);
     }
-    this.editor.setValue(data, -1);
+    this.editor.setValue(value, -1);
 };
 
 exports.focus = function () {
@@ -51,14 +52,18 @@ exports.init = function () {
     self.edEl.style.height = "100%";
 
     ace.require("ace/ext/language_tools");
+
     self.editor = ace.edit(self.edEl);
     self.editor.setTheme("ace/theme/" + self._config.theme);
     self.editor.setFontSize(self._config.font_size || 13);
     self.editor.getSession().setMode("ace/mode/" + self._config.mode);
+
 
     self.editor.setOptions({
         enableBasicAutocompletion: true,
         enableSnippets: true,
         enableLiveAutocompletion: true
     });
+
+    ace.require("ace/lib/net");
 };
