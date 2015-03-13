@@ -59,7 +59,9 @@ exports.init = function () {
     self.editor = ace.edit(self.edEl);
     self.editor.setTheme("ace/theme/" + self._config.theme);
     self.editor.setFontSize(self._config.font_size || 13);
-    self.editor.getSession().setMode("ace/mode/" + self._config.mode);
+    if (self._config.mode) {
+        self.setMode(null, { mode: self._config.mode });
+    }
 
     self.editor.setOptions({
         enableBasicAutocompletion: true,
@@ -67,3 +69,13 @@ exports.init = function () {
         enableLiveAutocompletion: true
     });
 };
+
+exports.setMode = function (ev, data) {
+    if (data.mode) {
+        this.editor.getSession().setMode("ace/mode/" + data.mode);
+    } else if (data.path) {
+        var modelist = ace.require('ace/ext/modelist')
+        var mode = modelist.getModeForPath(data.path).mode;
+        this.editor.session.setMode(mode);
+    }
+}
