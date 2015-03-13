@@ -5,7 +5,10 @@
  * @name set
  * @function
  * @param {Event} ev The event object
- * @param {Object} data The new value that will be stringified.
+ * @param {Object} data The data object:
+ *
+ *  - `content` (Object|String): The new value (as string) or a JSON object which will be stringified.
+ *
  * @return {undefined}
  */
 exports.set = function (ev, data) {
