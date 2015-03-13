@@ -1,6 +1,5 @@
 Engine Editor
 =============
-
 ACE editor module for Engine.
 
 ## Configuration
@@ -35,7 +34,8 @@ Sets the new editor value.
 
 #### Params
 - **Event** `ev`: The event object
-- **Object** `data`: The new value that will be stringified.
+- **Object** `data`: The data object:
+  - `content` (Object|String): The new value (as string) or a JSON object which will be stringified.
 
 ### `get(ev, data)`
 Gets the editor value.

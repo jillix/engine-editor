@@ -3,7 +3,8 @@
         "methods": {
             "set": {},
             "get": {},
-            "focus": {}
+            "focus": {},
+            "setMode": {}
         }
     }
 }
