@@ -58,12 +58,9 @@ exports.init = function () {
     self.editor.setFontSize(self._config.font_size || 13);
     self.editor.getSession().setMode("ace/mode/" + self._config.mode);
 
-
     self.editor.setOptions({
         enableBasicAutocompletion: true,
         enableSnippets: true,
         enableLiveAutocompletion: true
     });
-
-    ace.require("ace/lib/net");
 };
