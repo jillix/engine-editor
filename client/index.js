@@ -78,7 +78,7 @@ exports.init = function () {
             sender: "editor"
         },
         exec: function (e, data) {
-            self.emit("save", e, self.get());
+            self.emit("save", e, { data: self.get(null, {}) });
         }
     });
 };
