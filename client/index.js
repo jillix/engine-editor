@@ -68,14 +68,27 @@ exports.init = function () {
         enableSnippets: true,
         enableLiveAutocompletion: true
     });
+
+    // Listen for save event
+    self.editor.commands.addCommand({
+        name: "save",
+        bindKey: {
+            win: "Ctrl-S",
+            mac: "Command-S",
+            sender: "editor"
+        },
+        exec: function (e, data) {
+            self.emit("save", e, self.get());
+        }
+    });
 };
 
 exports.setMode = function (ev, data) {
     if (data.mode) {
         this.editor.getSession().setMode("ace/mode/" + data.mode);
     } else if (data.path) {
-        var modelist = ace.require('ace/ext/modelist')
+        var modelist = ace.require("ace/ext/modelist");
         var mode = modelist.getModeForPath(data.path).mode;
         this.editor.session.setMode(mode);
     }
-}
+};
