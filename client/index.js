@@ -14,7 +14,7 @@
 exports.set = function (ev, data) {
     var value = data.content;
     if (typeof value === "object") {
-        value = JSON.stringify(value, null, 2);
+        value = JSON.stringify(value, null, this._config.tab_size);
     }
     this.editor.setValue(value, -1);
 };
@@ -60,13 +60,14 @@ exports.init = function () {
     self.editor.setTheme("ace/theme/" + self._config.theme);
     self.editor.setFontSize(self._config.font_size || 13);
     self.session = self.editor.getSession();
+
     if (self._config.mode) {
         self.setMode(null, { mode: self._config.mode });
     }
 
-    if (self._config.tab_size) {
-        self.session.setTabSize(self._config.tab_size);
-    }
+    self.session.setTabSize(
+        self._config.tab_size = self._config.tab_size === undefined ? 2 : self._config.tab_size
+    );
 
     self.editor.setOptions({
         enableBasicAutocompletion: true,
