@@ -8,6 +8,7 @@ ACE editor module for Engine.
  - `theme` (String): The editor theme.
  - `mode` (String): The editor mode.
  - `font_size` (Number): The font size.
+ - `tab_size` (Number): The tab size (how many spaces).
 
 ### Example
 ```js
