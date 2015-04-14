@@ -64,8 +64,8 @@ exports.init = function () {
         self.setMode(null, { mode: self._config.mode });
     }
 
-    if (self._config.tabSize) {
-        self.session.setTabSize(self._config.tabSize);
+    if (self._config.tab_size) {
+        self.session.setTabSize(self._config.tab_size);
     }
 
     self.editor.setOptions({
