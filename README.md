@@ -22,7 +22,8 @@ ACE editor module for Engine.
             "mode": "json",
             "theme": "textmate",
             "editor": ".sidebar .editor",
-            "font_size": 13
+            "font_size": 13,
+            "tab_size": 2
         }
     }
 }
