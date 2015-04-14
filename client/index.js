@@ -59,8 +59,13 @@ exports.init = function () {
     self.editor = ace.edit(self.edEl);
     self.editor.setTheme("ace/theme/" + self._config.theme);
     self.editor.setFontSize(self._config.font_size || 13);
+    self.session = self.editor.getSession();
     if (self._config.mode) {
         self.setMode(null, { mode: self._config.mode });
+    }
+
+    if (self._config.tabSize) {
+        self.session.setTabSize(self._config.tabSize);
     }
 
     self.editor.setOptions({
@@ -85,10 +90,10 @@ exports.init = function () {
 
 exports.setMode = function (ev, data) {
     if (data.mode) {
-        this.editor.getSession().setMode("ace/mode/" + data.mode);
+        this.session.setMode("ace/mode/" + data.mode);
     } else if (data.path) {
         var modelist = ace.require("ace/ext/modelist");
         var mode = modelist.getModeForPath(data.path).mode;
-        this.editor.session.setMode(mode);
+        this.session.setMode(mode);
     }
 };
