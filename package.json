@@ -1,50 +1,45 @@
 {
-    "name": "engine-editor",
-    "version": "1.0.0",
-    "description": "ACE editor module for Engine.",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/jillix/editor.git"
-    },
-    "keywords": [
-        "editor",
-        "ace",
-        "engine"
-    ],
-    "author": "jillix <contact@jillix.com>",
-    "license": "MIT",
-    "components": {
-        "scripts": [
-            "client/index.js",
-            "client/libs/ace/src-noconflict/snippets/css.js",
-            "client/libs/ace/src-noconflict/snippets/html.js",
-            "client/libs/ace/src-noconflict/snippets/javascript.js",
-            "client/libs/ace/src-noconflict/snippets/json.js",
-            "client/libs/ace/src-noconflict/snippets/yaml.js",
-
-            "client/libs/ace/src-noconflict/ext-searchbox.js",
-            "client/libs/ace/src-noconflict/ext-language_tools.js",
-
-            "client/libs/ace/src-noconflict/mode-css.js",
-            "client/libs/ace/src-noconflict/mode-html.js",
-            "client/libs/ace/src-noconflict/mode-javascript.js",
-            "client/libs/ace/src-noconflict/mode-json.js",
-
-            "client/libs/ace/src-noconflict/theme-textmate.js",
-
-            "client/libs/ace/src-noconflict/worker-css.js",
-            "client/libs/ace/src-noconflict/worker-html.js",
-            "client/libs/ace/src-noconflict/worker-javascript.js",
-            "client/libs/ace/src-noconflict/worker-json.js",
-
-            "client/libs/ace/src-noconflict/ace.js"
-        ]
-    },
-    "bugs": {
-        "url": "https://github.com/jillix/editor/issues"
-    },
-    "homepage": "https://github.com/jillix/editor"
+  "name": "engine-editor",
+  "version": "1.0.1",
+  "description": "ACE editor module for Engine.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jillix/editor.git"
+  },
+  "keywords": [
+    "editor",
+    "ace",
+    "engine"
+  ],
+  "author": "jillix <contact@jillix.com>",
+  "license": "MIT",
+  "components": {
+    "scripts": [
+      "client/index.js",
+      "client/libs/ace/src-noconflict/snippets/css.js",
+      "client/libs/ace/src-noconflict/snippets/html.js",
+      "client/libs/ace/src-noconflict/snippets/javascript.js",
+      "client/libs/ace/src-noconflict/snippets/json.js",
+      "client/libs/ace/src-noconflict/snippets/yaml.js",
+      "client/libs/ace/src-noconflict/ext-searchbox.js",
+      "client/libs/ace/src-noconflict/ext-language_tools.js",
+      "client/libs/ace/src-noconflict/mode-css.js",
+      "client/libs/ace/src-noconflict/mode-html.js",
+      "client/libs/ace/src-noconflict/mode-javascript.js",
+      "client/libs/ace/src-noconflict/mode-json.js",
+      "client/libs/ace/src-noconflict/theme-textmate.js",
+      "client/libs/ace/src-noconflict/worker-css.js",
+      "client/libs/ace/src-noconflict/worker-html.js",
+      "client/libs/ace/src-noconflict/worker-javascript.js",
+      "client/libs/ace/src-noconflict/worker-json.js",
+      "client/libs/ace/src-noconflict/ace.js"
+    ]
+  },
+  "bugs": {
+    "url": "https://github.com/jillix/editor/issues"
+  },
+  "homepage": "https://github.com/jillix/editor"
 }
