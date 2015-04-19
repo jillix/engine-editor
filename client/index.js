@@ -1,43 +1,5 @@
-/**
- * set
- * Sets the new editor value.
- *
- * @name set
- * @function
- * @param {Event} ev The event object
- * @param {Object} data The data object:
- *
- *  - `content` (Object|String): The new value (as string) or a JSON object which will be stringified.
- *
- * @return {undefined}
- */
-exports.set = function (ev, data) {
-    var value = data.content;
-    if (typeof value === "object") {
-        value = JSON.stringify(value, null, this._config.tab_size);
-    }
-    this.editor.setValue(value, -1);
-};
-
-exports.focus = function () {
-    this.editor.focus();
-};
-
-/**
- * get
- * Gets the editor value.
- *
- * @name get
- * @function
- * @param {Event} ev The event object
- * @param {Function} data An object containing the callback function.
- * @return {undefined}
- */
-exports.get = function (ev, data) {
-    var value = this.editor.getValue();
-    typeof data.callback === "function" && data.callback.call(this, value);
-    return value;
-};
+// Dependencies
+var blm = require("./libs/blm");
 
 /**
  * init
@@ -65,6 +27,19 @@ exports.init = function () {
         self.setMode(null, { mode: self._config.mode });
     }
 
+    self._config.preventTabClose = typeof self._config.preventTabClose === "string"
+                                 ? self._config.preventTabClose
+                                 : "You have unsaved changes in the editor! Do you really want to close the tab?"
+                                 ;
+
+    if (self._config.preventTabClose) {
+        blm(function () {
+            if (!self.isSaved()) {
+                return self._config.preventTabClose;
+            }
+        });
+    }
+
     self.session.setTabSize(
         self._config.tab_size = self._config.tab_size === undefined ? 2 : self._config.tab_size
     );
@@ -73,6 +48,13 @@ exports.init = function () {
         enableBasicAutocompletion: true,
         enableSnippets: true,
         enableLiveAutocompletion: true
+    });
+
+    // Track the saved value
+    self.isSaved(null, { saved: true });
+    self.editor.on("input", function() {
+        self.isSaved(null, { saved: false });
+        self.emit("change");
     });
 
     // Listen for save event
@@ -84,11 +66,82 @@ exports.init = function () {
             sender: "editor"
         },
         exec: function (e, data) {
+            self.isSaved(null, { saved: true });
             self.emit("save", e, { data: self.get(null, {}) });
         }
     });
 };
 
+/**
+ * set
+ * Sets the new editor value.
+ *
+ * @name set
+ * @function
+ * @param {Event} ev The event object
+ * @param {Object} data The data object:
+ *
+ *  - `content` (Object|String): The new value (as string) or a JSON object which will be stringified.
+ *  - `save` (Boolean): A flag to or not to consider the content saved (default: `true`).
+ *
+ * @return {undefined}
+ */
+exports.set = function (ev, data) {
+    var value = data.content;
+
+    if (typeof value === "object") {
+        value = JSON.stringify(value, null, this._config.tab_size);
+    }
+
+    if (data.save !== false) {
+        this.isSaved(null, { saved: true });
+    }
+
+    this.editor.setValue(value, -1);
+};
+
+/**
+ * focus
+ * Focus the editor element.
+ *
+ * @name focus
+ * @function
+ * @return {undefined}
+ */
+exports.focus = function () {
+    this.editor.focus();
+};
+
+/**
+ * get
+ * Gets the editor value.
+ *
+ * @name get
+ * @function
+ * @param {Event} ev The event object
+ * @param {Function} data An object containing the callback function.
+ * @return {undefined}
+ */
+exports.get = function (ev, data) {
+    var value = this.editor.getValue();
+    typeof data.callback === "function" && data.callback.call(this, value);
+    return value;
+};
+
+/**
+ * setMode
+ * Sets the editor mode.
+ *
+ * @name setMode
+ * @function
+ * @param {Event} ev The event object.
+ * @param {Object} data The data object containing:
+ *
+ *  - `mode` (String): The mode to set (if not provided, the `path` value will be used).
+ *  - `path` (String): The path of the file (used to get the extension)
+ *
+ * @return {undefined}
+ */
 exports.setMode = function (ev, data) {
     if (data.mode) {
         this.session.setMode("ace/mode/" + data.mode);
@@ -97,4 +150,24 @@ exports.setMode = function (ev, data) {
         var mode = modelist.getModeForPath(data.path).mode;
         this.session.setMode(mode);
     }
+};
+
+/**
+ * isSaved
+ * Emits the `is_saved` event containing the `saved` value.
+ *
+ * @name isSaved
+ * @function
+ * @param {Event} ev The event object.
+ * @param {Object} data The data object containing:
+ * @return {Boolean} The isSaved value.
+ */
+exports.isSaved = function (ev, data) {
+    data = data || {};
+    if (typeof data.saved === "boolean") {
+        this._isSaved = data.saved;;
+    } else {
+        this.emit("is_saved", null, { saved: this._isSaved });
+    }
+    return this._isSaved;
 };

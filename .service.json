@@ -4,7 +4,8 @@
             "set": {},
             "get": {},
             "focus": {},
-            "setMode": {}
+            "setMode": {},
+            "isSaved": {}
         }
     }
 }
