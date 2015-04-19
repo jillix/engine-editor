@@ -1,45 +1,4 @@
 /**
- * set
- * Sets the new editor value.
- *
- * @name set
- * @function
- * @param {Event} ev The event object
- * @param {Object} data The data object:
- *
- *  - `content` (Object|String): The new value (as string) or a JSON object which will be stringified.
- *
- * @return {undefined}
- */
-exports.set = function (ev, data) {
-    var value = data.content;
-    if (typeof value === "object") {
-        value = JSON.stringify(value, null, this._config.tab_size);
-    }
-    this.editor.setValue(value, -1);
-};
-
-exports.focus = function () {
-    this.editor.focus();
-};
-
-/**
- * get
- * Gets the editor value.
- *
- * @name get
- * @function
- * @param {Event} ev The event object
- * @param {Function} data An object containing the callback function.
- * @return {undefined}
- */
-exports.get = function (ev, data) {
-    var value = this.editor.getValue();
-    typeof data.callback === "function" && data.callback.call(this, value);
-    return value;
-};
-
-/**
  * init
  * The init function.
  *
@@ -89,6 +48,70 @@ exports.init = function () {
     });
 };
 
+/**
+ * set
+ * Sets the new editor value.
+ *
+ * @name set
+ * @function
+ * @param {Event} ev The event object
+ * @param {Object} data The data object:
+ *
+ *  - `content` (Object|String): The new value (as string) or a JSON object which will be stringified.
+ *
+ * @return {undefined}
+ */
+exports.set = function (ev, data) {
+    var value = data.content;
+    if (typeof value === "object") {
+        value = JSON.stringify(value, null, this._config.tab_size);
+    }
+    this.editor.setValue(value, -1);
+};
+
+/**
+ * focus
+ * Focus the editor element.
+ *
+ * @name focus
+ * @function
+ * @return {undefined}
+ */
+exports.focus = function () {
+    this.editor.focus();
+};
+
+/**
+ * get
+ * Gets the editor value.
+ *
+ * @name get
+ * @function
+ * @param {Event} ev The event object
+ * @param {Function} data An object containing the callback function.
+ * @return {undefined}
+ */
+exports.get = function (ev, data) {
+    var value = this.editor.getValue();
+    typeof data.callback === "function" && data.callback.call(this, value);
+    return value;
+};
+
+
+/**
+ * setMode
+ * Sets the editor mode.
+ *
+ * @name setMode
+ * @function
+ * @param {Event} ev The event object.
+ * @param {Object} data The data object containing:
+ *
+ *  - `mode` (String): The mode to set (if not provided, the `path` value will be used).
+ *  - `path` (String): The path of the file (used to get the extension)
+ *
+ * @return {undefined}
+ */
 exports.setMode = function (ev, data) {
     if (data.mode) {
         this.session.setMode("ace/mode/" + data.mode);
