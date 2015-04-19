@@ -1,3 +1,6 @@
+// Dependencies
+var blm = require("./libs/blm");
+
 /**
  * init
  * The init function.
@@ -24,6 +27,19 @@ exports.init = function () {
         self.setMode(null, { mode: self._config.mode });
     }
 
+    self._config.preventTabClose = typeof self._config.preventTabClose === "string"
+                                 ? self._config.preventTabClose
+                                 : "You have unsaved changes in the editor! Do you really want to close the tab?"
+                                 ;
+
+    if (self._config.preventTabClose) {
+        blm(function () {
+            if (!self.isSaved()) {
+                return self._config.preventTabClose;
+            }
+        });
+    }
+
     self.session.setTabSize(
         self._config.tab_size = self._config.tab_size === undefined ? 2 : self._config.tab_size
     );
@@ -35,9 +51,9 @@ exports.init = function () {
     });
 
     // Track the saved value
-    self._isSaved = true;
+    self.isSaved(null, { saved: true });
     self.editor.on("input", function() {
-        self._isSaved = false;
+        self.isSaved(null, { saved: false });
         self.emit("change");
     });
 
@@ -50,7 +66,7 @@ exports.init = function () {
             sender: "editor"
         },
         exec: function (e, data) {
-            self._isSaved = true;
+            self.isSaved(null, { saved: true });
             self.emit("save", e, { data: self.get(null, {}) });
         }
     });
@@ -66,14 +82,21 @@ exports.init = function () {
  * @param {Object} data The data object:
  *
  *  - `content` (Object|String): The new value (as string) or a JSON object which will be stringified.
+ *  - `save` (Boolean): A flag to or not to consider the content saved (default: `true`).
  *
  * @return {undefined}
  */
 exports.set = function (ev, data) {
     var value = data.content;
+
     if (typeof value === "object") {
         value = JSON.stringify(value, null, this._config.tab_size);
     }
+
+    if (data.save !== false) {
+        this.isSaved(null, { saved: true });
+    }
+
     this.editor.setValue(value, -1);
 };
 
@@ -137,8 +160,14 @@ exports.setMode = function (ev, data) {
  * @function
  * @param {Event} ev The event object.
  * @param {Object} data The data object containing:
- * @return {undefined}
+ * @return {Boolean} The isSaved value.
  */
 exports.isSaved = function (ev, data) {
-    this.emit("is_saved", null, { saved: this._isSaved });
+    data = data || {};
+    if (typeof data.saved === "boolean") {
+        this._isSaved = data.saved;;
+    } else {
+        this.emit("is_saved", null, { saved: this._isSaved });
+    }
+    return this._isSaved;
 };
