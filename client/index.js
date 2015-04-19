@@ -34,6 +34,13 @@ exports.init = function () {
         enableLiveAutocompletion: true
     });
 
+    // Track the saved value
+    self._isSaved = true;
+    self.editor.on("input", function() {
+        self._isSaved = false;
+        self.emit("change");
+    });
+
     // Listen for save event
     self.editor.commands.addCommand({
         name: "save",
@@ -43,6 +50,7 @@ exports.init = function () {
             sender: "editor"
         },
         exec: function (e, data) {
+            self._isSaved = true;
             self.emit("save", e, { data: self.get(null, {}) });
         }
     });
@@ -97,7 +105,6 @@ exports.get = function (ev, data) {
     return value;
 };
 
-
 /**
  * setMode
  * Sets the editor mode.
@@ -120,4 +127,18 @@ exports.setMode = function (ev, data) {
         var mode = modelist.getModeForPath(data.path).mode;
         this.session.setMode(mode);
     }
+};
+
+/**
+ * isSaved
+ * Emits the `is_saved` event containing the `saved` value.
+ *
+ * @name isSaved
+ * @function
+ * @param {Event} ev The event object.
+ * @param {Object} data The data object containing:
+ * @return {undefined}
+ */
+exports.isSaved = function (ev, data) {
+    this.emit("is_saved", null, { saved: this._isSaved });
 };
