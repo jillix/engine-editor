@@ -25,6 +25,7 @@
       "client/libs/ace/src-noconflict/snippets/javascript.js",
       "client/libs/ace/src-noconflict/snippets/json.js",
       "client/libs/ace/src-noconflict/snippets/yaml.js",
+      "client/libs/ace/src-noconflict/ext-modelist.js",
       "client/libs/ace/src-noconflict/ext-searchbox.js",
       "client/libs/ace/src-noconflict/ext-language_tools.js",
       "client/libs/ace/src-noconflict/mode-css.js",
