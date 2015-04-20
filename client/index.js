@@ -88,6 +88,7 @@ exports.init = function () {
  */
 exports.set = function (ev, data) {
     var value = data.content;
+    var self = this;
 
     if (typeof value === "object") {
         value = JSON.stringify(value, null, this._config.tab_size);
@@ -95,7 +96,9 @@ exports.set = function (ev, data) {
 
     this.editor.setValue(value, -1);
     if (data.save !== false) {
-        this.isSaved(null, { saved: true });
+        setTimeout(function() {
+            self.isSaved(null, { saved: true });
+        }, 100);
     }
 
 };
