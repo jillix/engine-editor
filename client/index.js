@@ -93,11 +93,11 @@ exports.set = function (ev, data) {
         value = JSON.stringify(value, null, this._config.tab_size);
     }
 
+    this.editor.setValue(value, -1);
     if (data.save !== false) {
         this.isSaved(null, { saved: true });
     }
 
-    this.editor.setValue(value, -1);
 };
 
 /**
