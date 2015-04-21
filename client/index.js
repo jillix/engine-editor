@@ -29,7 +29,7 @@ exports.init = function () {
 
     self._config.preventTabClose = typeof self._config.preventTabClose === "string"
                                  ? self._config.preventTabClose
-                                 : "You have unsaved changes in the editor! Do you really want to close the tab?"
+                                 : "You have unsaved changes in the editor! Do you really want to continue?"
                                  ;
 
     if (self._config.preventTabClose) {
@@ -90,6 +90,10 @@ exports.set = function (ev, data) {
     var value = data.content;
     var self = this;
 
+    if (self._config.preventTabClose && !self.isSaved() && !confirm(self._config.preventTabClose)) {
+        return;
+    }
+
     if (typeof value === "object") {
         value = JSON.stringify(value, null, this._config.tab_size);
     }
@@ -100,7 +104,6 @@ exports.set = function (ev, data) {
             self.isSaved(null, { saved: true });
         }, 100);
     }
-
 };
 
 /**
