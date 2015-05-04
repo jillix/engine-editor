@@ -70,5 +70,12 @@ Emits the `is_saved` event containing the `saved` value.
 #### Return
 - **Boolean** The isSaved value.
 
+## `close()`
+Checks if the editor can be closed and emits an event related to that:
+
+ - `unsavedChanges`, if there are unsaved changes
+ - `readyToClose`, if the editor is ready to be closed
+
+
 ## License
 See the [LICENSE](./LICENSE) file.
