@@ -72,6 +72,10 @@ exports.init = function () {
     });
 };
 
+function checkSaved() {
+    return this._config.preventTabClose && !this.isSaved() && !confirm(this._config.preventTabClose);
+}
+
 /**
  * set
  * Sets the new editor value.
@@ -90,7 +94,7 @@ exports.set = function (ev, data) {
     var value = data.content;
     var self = this;
 
-    if (self._config.preventTabClose && !self.isSaved() && !confirm(self._config.preventTabClose)) {
+    if (checkSaved.call(self)) {
         return;
     }
 
@@ -104,6 +108,26 @@ exports.set = function (ev, data) {
             self.isSaved(null, { saved: true });
         }, 100);
     }
+};
+
+/**
+ * close
+ * Checks if the editor can be closed and emits an event related to that:
+ *
+ *  - `unsavedChanges`, if there are unsaved changes
+ *  - `readyToClose`, if the editor is ready to be closed
+ *
+ * @name close
+ * @function
+ * @return {undefined}
+ */
+exports.close = function () {
+    if (checkSaved.call(this)) {
+        this.emit("unsavedChanges");
+        return;
+    }
+    this.isSaved(null, { saved: true });
+    this.emit("readyToClose");
 };
 
 /**
