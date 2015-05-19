@@ -20,24 +20,9 @@
     "scripts": [
       "client/index.js",
       "client/libs/blm.js",
-      "client/libs/ace/src-noconflict/snippets/css.js",
-      "client/libs/ace/src-noconflict/snippets/html.js",
-      "client/libs/ace/src-noconflict/snippets/javascript.js",
-      "client/libs/ace/src-noconflict/snippets/json.js",
-      "client/libs/ace/src-noconflict/snippets/yaml.js",
-      "client/libs/ace/src-noconflict/ext-modelist.js",
-      "client/libs/ace/src-noconflict/ext-searchbox.js",
-      "client/libs/ace/src-noconflict/ext-language_tools.js",
-      "client/libs/ace/src-noconflict/mode-css.js",
-      "client/libs/ace/src-noconflict/mode-html.js",
-      "client/libs/ace/src-noconflict/mode-javascript.js",
-      "client/libs/ace/src-noconflict/mode-json.js",
-      "client/libs/ace/src-noconflict/theme-textmate.js",
-      "client/libs/ace/src-noconflict/worker-css.js",
-      "client/libs/ace/src-noconflict/worker-html.js",
-      "client/libs/ace/src-noconflict/worker-javascript.js",
-      "client/libs/ace/src-noconflict/worker-json.js",
-      "client/libs/ace/src-noconflict/ace.js"
+      "https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ext-modelist.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ext-language_tools.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ace.js"
     ]
   },
   "bugs": {
