@@ -9,7 +9,11 @@
             "close": {}
         },
         "emits": {
-            "setAborted": {}
+            "setAborted": {},
+            "emit": {},
+            "setAborted": {},
+            "unsavedChanges": {},
+            "readyToClose": {}
         }
     }
 }
