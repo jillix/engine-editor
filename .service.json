@@ -10,7 +10,9 @@
         },
         "emits": {
             "setAborted": {},
-            "emit": {},
+            "change": {},
+            "save": {},
+            "is_saved": {},
             "setAborted": {},
             "unsavedChanges": {},
             "readyToClose": {}

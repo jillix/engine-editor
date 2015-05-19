@@ -11,6 +11,15 @@ ACE editor module for Engine.
  - `tab_size` (Number): The tab size (how many spaces).
  - `preventTabClose` (String): The message to display on page leave warning. To disable, just use an empty string.
 
+## Events
+
+ - :arrow_up: `setAborted` The value setting is aborted by the user.
+ - :arrow_up: `change` The editor value was changed.
+ - :arrow_up: `save` The user saves the editor content.
+ - :arrow_up: `unsavedChanges` The editor has unsaved changes (when calling `close`).
+ - :arrow_up: `readyToClose` The editor is ready to be closed (when calling `close`).
+ - :arrow_up: `isSaved` Tells the other modules if the editor content is saved or not.
+
 ### Example
 ```js
 {
