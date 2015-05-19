@@ -95,7 +95,7 @@ exports.set = function (ev, data) {
     var self = this;
 
     if (checkSaved.call(self)) {
-        return;
+        return self.emit("setAborted", ev, data);
     }
 
     if (typeof value === "object") {
