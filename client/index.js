@@ -1,6 +1,5 @@
 // Dependencies
 var blm = require("./libs/blm");
-window.define = ace.define;
 
 /**
  * init
