@@ -20,9 +20,9 @@
     "scripts": [
       "client/index.js",
       "client/libs/blm.js",
-      "http://wrabbit.jillix.net/api?url=https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ext-modelist.js",
-      "http://wrabbit.jillix.net/api?url=https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ext-language_tools.js",
-      "http://wrabbit.jillix.net/api?url=https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ace.js"
+      "http://wrabbit.jillix.net/api/https/cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ext-modelist.js?w=1",
+      "http://wrabbit.jillix.net/api/https/cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ext-language_tools.js?w=1",
+      "http://wrabbit.jillix.net/api/https/cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ace.js?w=1"
     ]
   },
   "bugs": {
