@@ -7,7 +7,6 @@ var blm = require("./libs/blm");
  *
  * @name init
  * @function
- * @return {undefined}
  */
 exports.init = function () {
     var self = this;
@@ -88,7 +87,6 @@ function checkSaved() {
  *  - `content` (Object|String): The new value (as string) or a JSON object which will be stringified.
  *  - `save` (Boolean): A flag to or not to consider the content saved (default: `true`).
  *
- * @return {undefined}
  */
 exports.set = function (ev, data) {
     var value = data.content;
@@ -119,7 +117,6 @@ exports.set = function (ev, data) {
  *
  * @name close
  * @function
- * @return {undefined}
  */
 exports.close = function () {
     if (checkSaved.call(this)) {
@@ -130,13 +127,27 @@ exports.close = function () {
     this.emit("readyToClose");
 };
 
+exports.undoManager = {
+    /**
+     * undoManager.reset
+     * Resets the undo stack.
+     *
+     * @name undoManager.reset
+     * @function
+     */
+    reset: function () {
+        var self = this;
+        debugger
+        self;
+    }
+};
+
 /**
  * focus
  * Focus the editor element.
  *
  * @name focus
  * @function
- * @return {undefined}
  */
 exports.focus = function () {
     this.editor.focus();
@@ -150,7 +161,6 @@ exports.focus = function () {
  * @function
  * @param {Event} ev The event object
  * @param {Function} data An object containing the callback function.
- * @return {undefined}
  */
 exports.get = function (ev, data) {
     var value = this.editor.getValue();
@@ -170,7 +180,6 @@ exports.get = function (ev, data) {
  *  - `mode` (String): The mode to set (if not provided, the `path` value will be used).
  *  - `path` (String): The path of the file (used to get the extension)
  *
- * @return {undefined}
  */
 exports.setMode = function (ev, data) {
     if (data.mode) {
