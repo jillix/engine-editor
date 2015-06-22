@@ -6,7 +6,8 @@
             "focus": {},
             "setMode": {},
             "isSaved": {},
-            "close": {}
+            "close": {},
+            "undoManager.reset": {}
         },
         "emits": {
             "setAborted": {},
