@@ -136,9 +136,7 @@ exports.undoManager = {
      * @function
      */
     reset: function () {
-        var self = this;
-        debugger
-        self;
+        this.session.setUndoManager(new ace.UndoManager());
     }
 };
 
