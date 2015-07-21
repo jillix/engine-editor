@@ -16,14 +16,16 @@
   ],
   "author": "jillix <contact@jillix.com>",
   "license": "MIT",
-  "components": {
-    "scripts": [
-      "client/index.js",
-      "client/libs/blm.js",
-      "#https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ext-modelist.js",
-      "#https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ext-language_tools.js",
-      "#https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ace.js"
-    ]
+  "composition": {
+    "client": {
+      "module": [
+        "client/index.js",
+        "client/libs/blm.js",
+        "#https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ext-modelist.js",
+        "#https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ext-language_tools.js",
+        "#https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ace.js"
+      ]
+    }
   },
   "bugs": {
     "url": "https://github.com/jillix/editor/issues"

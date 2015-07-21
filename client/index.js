@@ -1,6 +1,16 @@
 // Dependencies
 var blm = require("./libs/blm");
 
+function emit(eventName, data) {
+    var self = this;
+
+    var args = Array.prototype.slice.call(arguments).slice(1);
+
+    // create stream
+    var str = self._streams[eventName] || (self._streams[eventName] = self.flow(eventName));
+    str.write(null, data);
+}
+
 /**
  * init
  * The init function.
@@ -10,6 +20,10 @@ var blm = require("./libs/blm");
  */
 exports.init = function () {
     var self = this;
+
+    // init streams
+    self._streams = {};
+    self.emit = emit;
 
     self.edEl = document.querySelector(self._config.editor);
     self.edEl.style.width = "100%";
@@ -66,9 +80,11 @@ exports.init = function () {
         },
         exec: function (e, data) {
             self.isSaved(null, { saved: true });
-            self.emit("save", e, { data: self.get(null, {}) });
+            self.emit("save", { data: self.get(null, {}) });
         }
     });
+
+    self.emit("ready");
 };
 
 function checkSaved() {
@@ -88,24 +104,31 @@ function checkSaved() {
  *  - `save` (Boolean): A flag to or not to consider the content saved (default: `true`).
  *
  */
-exports.set = function (ev, data) {
-    var value = data.content;
+exports.set = function (stream) {
     var self = this;
 
-    if (checkSaved.call(self)) {
-        return self.emit("setAborted", ev, data);
-    }
+    stream.data(function (err, data) {
+        var value = data.content
 
-    if (typeof value === "object") {
-        value = JSON.stringify(value, null, this._config.tab_size);
-    }
+        if (err) {
+            return console.error(new Error(err));
+        }
 
-    this.editor.setValue(value, -1);
-    if (data.save !== false) {
-        setTimeout(function() {
-            self.isSaved(null, { saved: true });
-        }, 100);
-    }
+        if (checkSaved.call(self)) {
+            return self.emit("setAborted", data);
+        }
+
+        if (typeof value === "object") {
+            value = JSON.stringify(value, null, this._config.tab_size);
+        }
+
+        self.editor.setValue(value, -1);
+        if (data.save !== false) {
+            setTimeout(function() {
+                self.isSaved(null, { saved: true });
+            }, 100);
+        }
+    });
 };
 
 /**
@@ -118,13 +141,22 @@ exports.set = function (ev, data) {
  * @name close
  * @function
  */
-exports.close = function () {
-    if (checkSaved.call(this)) {
-        this.emit("unsavedChanges");
-        return;
-    }
-    this.isSaved(null, { saved: true });
-    this.emit("readyToClose");
+exports.close = function (stream) {
+    var self = this
+
+    stream.data(function (err, stream) {
+
+        if (err) {
+            return console.error(new Error(err));
+        }
+
+        if (checkSaved.call(self)) {
+            self.emit("unsavedChanges");
+            return;
+        }
+        self.isSaved(null, { saved: true });
+        self.emit("readyToClose");
+    });
 };
 
 exports.undoManager = {
@@ -135,8 +167,14 @@ exports.undoManager = {
      * @name undoManager.reset
      * @function
      */
-    reset: function () {
-        this.session.setUndoManager(new ace.UndoManager());
+    reset: function (stream) {
+        var self = this;
+        stream.data(function (err, data) {
+            if (err) {
+                return console.error(new Error(err));
+            }
+            self.session.setUndoManager(new ace.UndoManager());
+        });
     }
 };
 
@@ -147,8 +185,17 @@ exports.undoManager = {
  * @name focus
  * @function
  */
-exports.focus = function () {
-    this.editor.focus();
+exports.focus = function (stream) {
+    var self = this
+
+    stream.data(function (err, data) {
+
+        if (err) {
+            return console.error(new Error(err));
+        }
+
+        self.editor.focus();
+    });
 };
 
 /**
@@ -160,10 +207,21 @@ exports.focus = function () {
  * @param {Event} ev The event object
  * @param {Function} data An object containing the callback function.
  */
-exports.get = function (ev, data) {
-    var value = this.editor.getValue();
-    typeof data.callback === "function" && data.callback.call(this, value);
-    return value;
+exports.get = function (stream) {
+    var self = this
+    stream.data(function (err, data) {
+
+        if (err) {
+            return console.error(new Error(err));
+        }
+
+        // TODO
+        /*
+        var value = this.editor.getValue();
+        typeof data.callback === "function" && data.callback.call(this, value);
+        return value;
+        */
+    });   
 };
 
 /**
@@ -179,14 +237,23 @@ exports.get = function (ev, data) {
  *  - `path` (String): The path of the file (used to get the extension)
  *
  */
-exports.setMode = function (ev, data) {
-    if (data.mode) {
-        this.session.setMode("ace/mode/" + data.mode);
-    } else if (data.path) {
-        var modelist = ace.require("ace/ext/modelist");
-        var mode = modelist.getModeForPath(data.path).mode;
-        this.session.setMode(mode);
-    }
+exports.setMode = function (stream) {
+    var self = this
+
+    stream.data(function (err, data) {
+
+        if (err) {
+            return console.error(new Error(err));
+        }
+
+        if (data.mode) {
+            self.session.setMode("ace/mode/" + data.mode);
+        } else if (data.path) {
+            var modelist = ace.require("ace/ext/modelist");
+            var mode = modelist.getModeForPath(data.path).mode;
+            self.session.setMode(mode);
+        }
+    });
 };
 
 /**
@@ -200,11 +267,29 @@ exports.setMode = function (ev, data) {
  * @return {Boolean} The isSaved value.
  */
 exports.isSaved = function (ev, data) {
+    var self = this
+
     data = data || {};
     if (typeof data.saved === "boolean") {
         this._isSaved = data.saved;;
     } else {
-        this.emit("is_saved", null, { saved: this._isSaved });
+        this.emit("is_saved", null, { saved: self._isSaved });
     }
     return this._isSaved;
+
+    /*stream.data(function (err, data) {
+
+        if (err) {
+            return console.error(new Error(err));
+        }
+
+         TODO handle with callback
+        data = data || {};
+        if (typeof data.saved === "boolean") {
+            this._isSaved = data.saved;;
+        } else {
+            this.emit("is_saved", null, { saved: this._isSaved });
+        }
+        return this._isSaved;
+    });*/
 };
