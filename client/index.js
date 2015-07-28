@@ -79,7 +79,6 @@ exports.init = function () {
             sender: "editor"
         },
         exec: function (e, data) {
-            console.log(self);
             self.isSaved({ saved: true });
             self.emit("save", {
                 data: self.get(),
@@ -110,12 +109,8 @@ function checkSaved() {
 exports.set = function (stream) {
     var self = this;
 
-    stream.data(function (err, data) {
+    stream.data(function (data) {
         var value = data.content
-
-        if (err) {
-            return console.error(new Error(err));
-        }
 
         if (checkSaved.call(self)) {
             return self.emit("setAborted", data);
@@ -133,6 +128,11 @@ exports.set = function (stream) {
             }, 100);
         }
     });
+
+    // handle error
+    stream.error(function (err) {
+        return console.error(new Error(err));
+    });
 };
 
 /**
@@ -148,11 +148,7 @@ exports.set = function (stream) {
 exports.close = function (stream) {
     var self = this
 
-    stream.data(function (err, data) {
-
-        if (err) {
-            return console.error(new Error(err));
-        }
+    stream.data(function (data) {
 
         if (checkSaved.call(self)) {
             self.emit("unsavedChanges");
@@ -169,6 +165,11 @@ exports.close = function (stream) {
             select: true
         });
     });
+
+    // handle error
+    stream.error(function (err) {
+        return console.error(new Error(err));
+    });
 };
 
 exports.undoManager = {
@@ -181,11 +182,13 @@ exports.undoManager = {
      */
     reset: function (stream) {
         var self = this;
-        stream.data(function (err, data) {
-            if (err) {
-                return console.error(new Error(err));
-            }
+        stream.data(function (data) {
             self.session.setUndoManager(new ace.UndoManager());
+        });
+
+        // handle error
+        stream.error(function (err) {
+            return console.error(new Error(err));
         });
     }
 };
@@ -200,13 +203,13 @@ exports.undoManager = {
 exports.focus = function (stream) {
     var self = this
 
-    stream.data(function (err, data) {
-
-        if (err) {
-            return console.error(new Error(err));
-        }
-
+    stream.data(function (data) {
         self.editor.focus();
+    });
+
+    // handle error
+    stream.error(function (err) {
+        return console.error(new Error(err));
     });
 };
 
@@ -226,16 +229,17 @@ exports.get = function (stream) {
         return value;
     }
 
-    stream.data(function (err, data) {
-
-        if (err) {
-            return console.error(new Error(err));
-        }
+    stream.data(function (data) {
 
         var value = this.editor.getValue();
         var callback = data.callback || function () {};
 
         callback(value);
+    });
+
+    // handle error
+    stream.error(function (err) {
+        return console.error(new Error(err));
     });
 };
 
@@ -254,11 +258,7 @@ exports.get = function (stream) {
 exports.setMode = function (stream) {
     var self = this
 
-    stream.data(function (err, data) {
-
-        if (err) {
-            return console.error(new Error(err));
-        }
+    stream.data(function (data) {
 
         if (data.mode) {
             self.session.setMode("ace/mode/" + data.mode);
@@ -267,6 +267,11 @@ exports.setMode = function (stream) {
             var mode = modelist.getModeForPath(data.path).mode;
             self.session.setMode(mode);
         }
+    });
+
+    // handle error
+    stream.error(function (err) {
+        return console.error(new Error(err));
     });
 };
 
