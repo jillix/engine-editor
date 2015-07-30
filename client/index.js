@@ -4,11 +4,13 @@ var blm = require("./libs/blm");
 function emit(eventName, data) {
     var self = this;
 
-    var args = Array.prototype.slice.call(arguments).slice(1);
-
     // create stream
     var str = self._streams[eventName] || (self._streams[eventName] = self.flow(eventName));
     str.write(null, data);
+}
+
+function checkSaved() {
+    return this._config.preventTabClose && !this.isSaved() && !confirm(this._config.preventTabClose);
 }
 
 /**
@@ -24,6 +26,10 @@ exports.init = function () {
     // init streams
     self._streams = {};
     self.emit = emit;
+};
+
+exports.load = function (data) {
+    var self = this;
 
     self.edEl = document.querySelector(self._config.editor);
     self.edEl.style.width = "100%";
@@ -86,13 +92,7 @@ exports.init = function () {
             });
         }
     });
-
-    self.emit("ready");
 };
-
-function checkSaved() {
-    return this._config.preventTabClose && !this.isSaved() && !confirm(this._config.preventTabClose);
-}
 
 /**
  * set
@@ -106,33 +106,25 @@ function checkSaved() {
  *  - `save` (Boolean): A flag to or not to consider the content saved (default: `true`).
  *
  */
-exports.set = function (stream) {
+exports.set = function (data) {
     var self = this;
+    var value = data.content;
 
-    stream.data(function (data) {
-        var value = data.content
+    if (checkSaved.call(self)) {
+        return self.emit("setAborted", data);
+    }
 
-        if (checkSaved.call(self)) {
-            return self.emit("setAborted", data);
-        }
+    if (typeof value === "object") {
+        value = JSON.stringify(value, null, this._config.tab_size);
+    }
 
-        if (typeof value === "object") {
-            value = JSON.stringify(value, null, this._config.tab_size);
-        }
-
-        self.filePath = data.path;
-        self.editor.setValue(value, -1);
-        if (data.save !== false) {
-            setTimeout(function() {
-                self.isSaved({ saved: true });
-            }, 100);
-        }
-    });
-
-    // handle error
-    stream.error(function (err) {
-        return console.error(new Error(err));
-    });
+    self.filePath = data.path;
+    self.editor.setValue(value, -1);
+    if (data.save !== false) {
+        setTimeout(function() {
+            self.isSaved({ saved: true });
+        }, 100);
+    }
 };
 
 /**
@@ -145,30 +137,22 @@ exports.set = function (stream) {
  * @name close
  * @function
  */
-exports.close = function (stream) {
+exports.close = function (data) {
     var self = this
 
-    stream.data(function (data) {
+    if (checkSaved.call(self)) {
+        self.emit("unsavedChanges");
+        return;
+    }
+    self.isSaved({ saved: true });
+    self.emit("readyToClose");
 
-        if (checkSaved.call(self)) {
-            self.emit("unsavedChanges");
-            return;
-        }
-        self.isSaved({ saved: true });
-        self.emit("readyToClose");
-
-        // call callback if provided
-        var callback = data.callback || function (err) {
-            if (err) { return alert(err); }
-        };
-        callback(null, {
-            select: true
-        });
-    });
-
-    // handle error
-    stream.error(function (err) {
-        return console.error(new Error(err));
+    // call callback if provided
+    var callback = data.callback || function (err) {
+        if (err) { return alert(err); }
+    };
+    callback(null, {
+        select: true
     });
 };
 
@@ -180,16 +164,9 @@ exports.undoManager = {
      * @name undoManager.reset
      * @function
      */
-    reset: function (stream) {
+    reset: function (data) {
         var self = this;
-        stream.data(function (data) {
-            self.session.setUndoManager(new ace.UndoManager());
-        });
-
-        // handle error
-        stream.error(function (err) {
-            return console.error(new Error(err));
-        });
+        self.session.setUndoManager(new ace.UndoManager());
     }
 };
 
@@ -200,17 +177,9 @@ exports.undoManager = {
  * @name focus
  * @function
  */
-exports.focus = function (stream) {
-    var self = this
-
-    stream.data(function (data) {
-        self.editor.focus();
-    });
-
-    // handle error
-    stream.error(function (err) {
-        return console.error(new Error(err));
-    });
+exports.focus = function (data) {
+    var self = this;
+    self.editor.focus();
 };
 
 /**
@@ -219,28 +188,19 @@ exports.focus = function (stream) {
  *
  * @name get
  * @function
- * @param {Stream} stream The stream object
+ * @param {Object} data The data object containing:
  */
-exports.get = function (stream) {
-    var self = this
+exports.get = function (data) {
+    var self = this;
+    var value = this.editor.getValue();
 
-    if (!stream) {
-        var value = this.editor.getValue();
-        return value;
+    // fire callback (if exists)
+    if (data) {
+        var callback = data.callback || function () {};
+        callback(value);
     }
 
-    stream.data(function (data) {
-
-        var value = this.editor.getValue();
-        var callback = data.callback || function () {};
-
-        callback(value);
-    });
-
-    // handle error
-    stream.error(function (err) {
-        return console.error(new Error(err));
-    });
+    return value;
 };
 
 /**
@@ -249,30 +209,22 @@ exports.get = function (stream) {
  *
  * @name setMode
  * @function
- * @param {Stream} stream The stream object
+ * @param {Object} data The data object containing:
  *
  *  - `mode` (String): The mode to set (if not provided, the `path` value will be used).
  *  - `path` (String): The path of the file (used to get the extension)
  *
  */
-exports.setMode = function (stream) {
+exports.setMode = function (data) {
     var self = this
 
-    stream.data(function (data) {
-
-        if (data.mode) {
-            self.session.setMode("ace/mode/" + data.mode);
-        } else if (data.path) {
-            var modelist = ace.require("ace/ext/modelist");
-            var mode = modelist.getModeForPath(data.path).mode;
-            self.session.setMode(mode);
-        }
-    });
-
-    // handle error
-    stream.error(function (err) {
-        return console.error(new Error(err));
-    });
+    if (data.mode) {
+        self.session.setMode("ace/mode/" + data.mode);
+    } else if (data.path) {
+        var modelist = ace.require("ace/ext/modelist");
+        var mode = modelist.getModeForPath(data.path).mode;
+        self.session.setMode(mode);
+    }
 };
 
 /**
