@@ -21,9 +21,9 @@
       "module": [
         "client/index.js",
         "client/libs/blm.js",
-        "#https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ext-modelist.js",
-        "#https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ext-language_tools.js",
-        "#https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.9/ace.js"
+        "#https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.0/ext-modelist.js",
+        "#https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.0/ext-language_tools.js",
+        "#https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.0/ace.js"
       ]
     }
   },
