@@ -141,7 +141,7 @@ exports.set = function (data) {
  * @function
  */
 exports.close = function (data) {
-    var self = this
+    var self = this;
 
     if (checkSaved.call(self)) {
         self.emit("unsavedChanges");
