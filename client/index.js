@@ -1,6 +1,18 @@
 // Dependencies
 var blm = require("./libs/blm");
 
+function emit(eventName, data) {
+    var self = this;
+
+    // create stream
+    var str = self._streams[eventName] || (self._streams[eventName] = self.flow(eventName));
+    str.write(null, data);
+}
+
+function checkSaved() {
+    return this._config.preventTabClose && !this.isSaved() && !confirm(this._config.preventTabClose);
+}
+
 /**
  * init
  * The init function.
@@ -11,9 +23,20 @@ var blm = require("./libs/blm");
 exports.init = function () {
     var self = this;
 
+    // init streams
+    self._streams = {};
+    self.emit = emit;
+};
+
+exports.load = function (data) {
+    var self = this;
+
     self.edEl = document.querySelector(self._config.editor);
     self.edEl.style.width = "100%";
     self.edEl.style.height = "100%";
+    
+    // TODO this solves the path problem in ace, maybe there are better solutions.
+    ace.config.set('basePath', 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.0');
 
     ace.require("ace/ext/language_tools");
 
@@ -50,9 +73,9 @@ exports.init = function () {
     });
 
     // Track the saved value
-    self.isSaved(null, { saved: true });
+    self.isSaved({ saved: true });
     self.editor.on("input", function() {
-        self.isSaved(null, { saved: false });
+        self.isSaved({ saved: false });
         self.emit("change");
     });
 
@@ -65,15 +88,14 @@ exports.init = function () {
             sender: "editor"
         },
         exec: function (e, data) {
-            self.isSaved(null, { saved: true });
-            self.emit("save", e, { data: self.get(null, {}) });
+            self.isSaved({ saved: true });
+            self.emit("save", {
+                data: self.get(),
+                path: self.filePath
+            });
         }
     });
 };
-
-function checkSaved() {
-    return this._config.preventTabClose && !this.isSaved() && !confirm(this._config.preventTabClose);
-}
 
 /**
  * set
@@ -81,29 +103,29 @@ function checkSaved() {
  *
  * @name set
  * @function
- * @param {Event} ev The event object
- * @param {Object} data The data object:
+ * @param {Stream} stream The stream object
  *
  *  - `content` (Object|String): The new value (as string) or a JSON object which will be stringified.
  *  - `save` (Boolean): A flag to or not to consider the content saved (default: `true`).
  *
  */
-exports.set = function (ev, data) {
-    var value = data.content;
+exports.set = function (data) {
     var self = this;
+    var value = data.content;
 
     if (checkSaved.call(self)) {
-        return self.emit("setAborted", ev, data);
+        return self.emit("setAborted", data);
     }
 
     if (typeof value === "object") {
         value = JSON.stringify(value, null, this._config.tab_size);
     }
 
-    this.editor.setValue(value, -1);
+    self.filePath = data.path;
+    self.editor.setValue(value, -1);
     if (data.save !== false) {
         setTimeout(function() {
-            self.isSaved(null, { saved: true });
+            self.isSaved({ saved: true });
         }, 100);
     }
 };
@@ -118,13 +140,23 @@ exports.set = function (ev, data) {
  * @name close
  * @function
  */
-exports.close = function () {
-    if (checkSaved.call(this)) {
-        this.emit("unsavedChanges");
+exports.close = function (data) {
+    var self = this;
+
+    if (checkSaved.call(self)) {
+        self.emit("unsavedChanges");
         return;
     }
-    this.isSaved(null, { saved: true });
-    this.emit("readyToClose");
+    self.isSaved({ saved: true });
+    self.emit("readyToClose");
+
+    // call callback if provided
+    var callback = data.callback || function (err) {
+        if (err) { return alert(err); }
+    };
+    callback(null, {
+        select: true
+    });
 };
 
 exports.undoManager = {
@@ -135,8 +167,9 @@ exports.undoManager = {
      * @name undoManager.reset
      * @function
      */
-    reset: function () {
-        this.session.setUndoManager(new ace.UndoManager());
+    reset: function (data) {
+        var self = this;
+        self.session.setUndoManager(new ace.UndoManager());
     }
 };
 
@@ -147,8 +180,9 @@ exports.undoManager = {
  * @name focus
  * @function
  */
-exports.focus = function () {
-    this.editor.focus();
+exports.focus = function (data) {
+    var self = this;
+    self.editor.focus();
 };
 
 /**
@@ -157,12 +191,18 @@ exports.focus = function () {
  *
  * @name get
  * @function
- * @param {Event} ev The event object
- * @param {Function} data An object containing the callback function.
+ * @param {Object} data The data object containing:
  */
-exports.get = function (ev, data) {
+exports.get = function (data) {
+    var self = this;
     var value = this.editor.getValue();
-    typeof data.callback === "function" && data.callback.call(this, value);
+
+    // fire callback (if exists)
+    if (data) {
+        var callback = data.callback || function () {};
+        callback(value);
+    }
+
     return value;
 };
 
@@ -172,20 +212,21 @@ exports.get = function (ev, data) {
  *
  * @name setMode
  * @function
- * @param {Event} ev The event object.
  * @param {Object} data The data object containing:
  *
  *  - `mode` (String): The mode to set (if not provided, the `path` value will be used).
  *  - `path` (String): The path of the file (used to get the extension)
  *
  */
-exports.setMode = function (ev, data) {
+exports.setMode = function (data) {
+    var self = this
+
     if (data.mode) {
-        this.session.setMode("ace/mode/" + data.mode);
+        self.session.setMode("ace/mode/" + data.mode);
     } else if (data.path) {
         var modelist = ace.require("ace/ext/modelist");
         var mode = modelist.getModeForPath(data.path).mode;
-        this.session.setMode(mode);
+        self.session.setMode(mode);
     }
 };
 
@@ -195,16 +236,17 @@ exports.setMode = function (ev, data) {
  *
  * @name isSaved
  * @function
- * @param {Event} ev The event object.
  * @param {Object} data The data object containing:
  * @return {Boolean} The isSaved value.
  */
-exports.isSaved = function (ev, data) {
+exports.isSaved = function (data) {
+    var self = this
+
     data = data || {};
     if (typeof data.saved === "boolean") {
         this._isSaved = data.saved;;
     } else {
-        this.emit("is_saved", null, { saved: this._isSaved });
+        this.emit("is_saved", { saved: self._isSaved });
     }
     return this._isSaved;
 };
