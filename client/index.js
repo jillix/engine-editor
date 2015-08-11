@@ -34,7 +34,7 @@ exports.load = function (data) {
     self.edEl = document.querySelector(self._config.editor);
     self.edEl.style.width = "100%";
     self.edEl.style.height = "100%";
-    
+
     // TODO this solves the path problem in ace, maybe there are better solutions.
     ace.config.set('basePath', 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.0');
 
@@ -95,6 +95,7 @@ exports.load = function (data) {
             });
         }
     });
+    self.flow("renderedEditor").write(null, data);
 };
 
 /**
