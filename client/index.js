@@ -1,14 +1,6 @@
 // Dependencies
 var blm = require("./libs/blm");
 
-function emit(eventName, data) {
-    var self = this;
-
-    // create stream
-    var str = self._streams[eventName] || (self._streams[eventName] = self.flow(eventName));
-    str.write(null, data);
-}
-
 function checkSaved() {
     return this._config.preventTabClose && !this.isSaved() && !confirm(this._config.preventTabClose);
 }
@@ -22,10 +14,6 @@ function checkSaved() {
  */
 exports.init = function () {
     var self = this;
-
-    // init streams
-    self._streams = {};
-    self.emit = emit;
 };
 
 exports.load = function (data) {
@@ -42,6 +30,7 @@ exports.load = function (data) {
 
     self.editor = ace.edit(self.edEl);
     self.editor.setTheme("ace/theme/" + self._config.theme);
+    self.editor.$blockScrolling = Infinity;
     self.editor.setFontSize(self._config.font_size || 13);
     self.session = self.editor.getSession();
 
@@ -76,7 +65,7 @@ exports.load = function (data) {
     self.isSaved({ saved: true });
     self.editor.on("input", function() {
         self.isSaved({ saved: false });
-        self.emit("change");
+        self.flow("change").write(null);
     });
 
     // Listen for save event
@@ -89,7 +78,7 @@ exports.load = function (data) {
         },
         exec: function (e, data) {
             self.isSaved({ saved: true });
-            self.emit("save", {
+            self.flow("save").write(null, {
                 data: self.get(),
                 path: self.filePath
             });
@@ -116,7 +105,7 @@ exports.set = function (data) {
 
     if (!data.force) {
         if (checkSaved.call(self)) {
-            return self.emit("setAborted", data);
+            return self.flow("setAborted").write(null, data);
         }
     }
 
@@ -147,11 +136,11 @@ exports.close = function (data) {
     var self = this;
 
     if (checkSaved.call(self)) {
-        self.emit("unsavedChanges");
+        self.flow("unsavedChanges").write(null);
         return;
     }
     self.isSaved({ saved: true });
-    self.emit("readyToClose");
+    self.flow("readyToClose").write(null);
 
     // call callback if provided
     var callback = data.callback || function (err) {
@@ -247,9 +236,9 @@ exports.isSaved = function (data) {
 
     data = data || {};
     if (typeof data.saved === "boolean") {
-        this._isSaved = data.saved;;
+        self._isSaved = data.saved;;
     } else {
-        this.emit("is_saved", { saved: self._isSaved });
+        self.flow("is_saved").write(null, { saved: self._isSaved });
     }
-    return this._isSaved;
+    return self._isSaved;
 };
