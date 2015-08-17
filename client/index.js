@@ -114,8 +114,10 @@ exports.set = function (data) {
     var self = this;
     var value = data.content;
 
-    if (checkSaved.call(self)) {
-        return self.emit("setAborted", data);
+    if (!data.force) {
+        if (checkSaved.call(self)) {
+            return self.emit("setAborted", data);
+        }
     }
 
     if (typeof value === "object") {
