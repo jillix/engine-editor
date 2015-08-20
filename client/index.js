@@ -5,17 +5,6 @@ function checkSaved() {
     return this._config.preventTabClose && !this.isSaved() && !confirm(this._config.preventTabClose);
 }
 
-/**
- * init
- * The init function.
- *
- * @name init
- * @function
- */
-exports.init = function () {
-    var self = this;
-};
-
 exports.load = function (data) {
     var self = this;
 
@@ -79,7 +68,7 @@ exports.load = function (data) {
         exec: function (e, data) {
             self.isSaved({ saved: true });
             self.flow("save").write(null, {
-                data: self.get(),
+                data: self.get().trim(),
                 path: self.filePath
             });
         }
