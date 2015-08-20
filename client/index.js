@@ -67,8 +67,17 @@ exports.load = function (data) {
         },
         exec: function (e, data) {
             self.isSaved({ saved: true });
+
+            // remove trailing spaces
+            var content = self.get().split("\n");
+            for(var i = 0; i < content.length; ++i) {
+                content[i] = content[i].trimRight();
+            };
+            content = content.join("\n");
+
+            // save content to file
             self.flow("save").write(null, {
-                data: self.get().trim(),
+                data: content,
                 path: self.filePath
             });
         }
