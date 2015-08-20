@@ -70,7 +70,7 @@ exports.load = function (data) {
 
             // remove trailing spaces
             var content = self.get().split("\n");
-            for(var i = 0; i < content.length; ++i) {
+            for (var i = 0; i < content.length; ++i) {
                 content[i] = content[i].trimRight();
             };
             content = content.join("\n");
