@@ -130,9 +130,10 @@ exports.set = function (data) {
  * @name close
  * @function
  */
-exports.close = function (data) {
+exports.close = function (data, stream) {
     var self = this;
 
+    // check if there are any unsaved changes
     if (checkSaved.call(self)) {
         self.flow("unsavedChanges").write(null);
         return;
@@ -141,12 +142,11 @@ exports.close = function (data) {
     self.flow("readyToClose").write(null);
 
     // call callback if provided
-    var callback = data.callback || function (err) {
-        if (err) { return alert(err); }
-    };
-    callback(null, {
-        select: true
-    });
+    if (data.callback && typeof data.callback === "function") {
+        data.callback(null, {
+            select: true
+        });
+    }
 };
 
 exports.undoManager = {
@@ -183,7 +183,7 @@ exports.focus = function (data) {
  * @function
  * @param {Object} data The data object containing:
  */
-exports.get = function (data) {
+exports.get = function (data, stream) {
     var self = this;
     var value = this.editor.getValue();
 
@@ -193,7 +193,14 @@ exports.get = function (data) {
         callback(value);
     }
 
-    return value;
+    if (stream) {
+        stream.write(null, {
+            data: value,
+            path: self.filePath
+        });
+    } else {
+        return value;
+    }
 };
 
 /**
@@ -231,7 +238,6 @@ exports.setMode = function (data) {
  */
 exports.isSaved = function (data) {
     var self = this
-
     data = data || {};
     if (typeof data.saved === "boolean") {
         self._isSaved = data.saved;;
