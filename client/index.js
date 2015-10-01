@@ -182,15 +182,16 @@ exports.focus = function (data) {
  * @name get
  * @function
  * @param {Object} data The data object containing:
+ *
+ *  - `callback` (Function): An optional callback function.
  */
 exports.get = function (data, stream) {
     var self = this;
     var value = this.editor.getValue();
 
     // fire callback (if exists)
-    if (data) {
-        var callback = data.callback || function () {};
-        callback(value);
+    if (data && typeof data.callback === "function") {
+        data.callback(value);
     }
 
     if (stream) {
@@ -198,9 +199,9 @@ exports.get = function (data, stream) {
             data: value,
             path: self.filePath
         });
-    } else {
-        return value;
     }
+
+    return value;
 };
 
 /**

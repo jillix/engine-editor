@@ -1,14 +1,11 @@
 ## Documentation
 You can see below the API reference of this module.
 
-### `init()`
-The init function.
-
-### `set(data)`
+### `set(stream)`
 Sets the new editor value.
 
 #### Params
-- **Object** `data`: The data object:
+- **Stream** `stream`: The stream object
  - `content` (Object|String): The new value (as string) or a JSON object which will be stringified.
  - `save` (Boolean): A flag to or not to consider the content saved (default: `true`).
 
@@ -28,7 +25,8 @@ Focus the editor element.
 Gets the editor value.
 
 #### Params
-- **Function** `data`: An object containing the callback function.
+- **Object** `data`: The data object containing:
+ - `callback` (Function): An optional callback function.
 
 ### `setMode(data)`
 Sets the editor mode.
