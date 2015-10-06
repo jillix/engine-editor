@@ -95,6 +95,7 @@ exports.load = function (data) {
  *
  *  - `content` (Object|String): The new value (as string) or a JSON object which will be stringified.
  *  - `save` (Boolean): A flag to or not to consider the content saved (default: `true`).
+ *  - `force` (Boolean): If `true`, the save state will *not* be checked.
  *
  */
 exports.set = function (data) {
@@ -111,7 +112,7 @@ exports.set = function (data) {
         value = JSON.stringify(value, null, this._config.tab_size);
     }
 
-    self.filePath = data.path;
+    self.filePath = data.path || self.filePath;
     self.editor.setValue(value, -1);
     if (data.save !== false) {
         setTimeout(function() {
