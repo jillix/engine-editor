@@ -195,6 +195,13 @@ exports.get = function (data, stream) {
         data.callback(value);
     }
 
+    if (data.writeToStream) {
+        stream.write(null, {
+            path: self.filePath,
+            data: value
+        });
+    }
+
     return value;
 };
 
