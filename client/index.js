@@ -186,7 +186,7 @@ exports.focus = function (data) {
  *
  *  - `callback` (Function): An optional callback function.
  */
-exports.get = function (data, stream) {
+exports.get = function (data, stream, writeToStream) {
     var self = this;
     var value = this.editor.getValue();
 
@@ -195,7 +195,7 @@ exports.get = function (data, stream) {
         data.callback(value);
     }
 
-    if (data.writeToStream) {
+    if (data.writeToStream || writeToStream) {
         stream.write(null, {
             path: self.filePath,
             data: value
