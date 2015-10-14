@@ -195,7 +195,7 @@ exports.get = function (data, stream, writeToStream) {
         data.callback(value);
     }
 
-    if (data.writeToStream || writeToStream) {
+    if ((data && data.writeToStream) || writeToStream) {
         stream.write(null, {
             path: self.filePath,
             data: value
